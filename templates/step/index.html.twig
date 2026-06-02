@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Journal des Étapes - Valori-Carcasse{% endblock %}
+
+{% block body %}
+    <!-- ENTÊTE DE SECTION CLINIQUE -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Journal Éléments Financiers</h1>
+            <p class="text-xs text-zinc-500 mt-1">Historique global de toutes les lignes d'impacts, coûts logistiques et coproduits enregistrés.</p>
+        </div>
+        <a href="{{ path('app_step_new') }}" class="inline-flex items-center justify-center px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md text-xs transition-colors w-full sm:w-auto">
+            + Nouvelle étape
+        </a>
+    </div>
+
+    <!-- TABLEAU DE SUIVI DES FLUX -->
+    <div class="bg-white border border-zinc-200 rounded-md p-5">
+        <div class="overflow-x-auto">
+            <table class="table w-full text-xs">
+                <thead>
+                <tr class="text-zinc-500 uppercase tracking-wider text-[10px] font-semibold border-b border-zinc-100">
+                    <th class="pb-2 text-left w-12 font-mono">ID</th>
+                    <th class="pb-2 text-left">Désignation du flux</th>
+                    <th class="pb-2 text-center w-36">Nature de l'impact</th>
+                    <th class="pb-2 text-right w-40">Montant</th>
+                    <th class="pb-2 w-28"></th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                {% for step in steps %}
+                    <tr class="hover:bg-zinc-50/50 transition-colors">
+                        <!-- ID MONOSPACE -->
+                        <td class="py-3 font-mono text-zinc-400">
+                            #{{ step.id }}
+                        </td>
+                        <!-- INTITULÉ DU FLUX -->
+                        <td class="py-3 font-semibold text-zinc-900">
+                            {{ step.name }}
+                        </td>
+                        <!-- NATURE DU FLUX AVEC BADGE DISCRET -->
+                        <td class="py-3 text-center">
+                            {% if step.isGain %}
+                                <span class="inline-block font-mono text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded tracking-wider">VALORISATION (+)</span>
+                            {% else %}
+                                <span class="inline-block font-mono text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200/60 px-1.5 py-0.5 rounded tracking-wider">CHARGE (-)</span>
+                            {% endif %}
+                        </td>
+                        <!-- MONTANT FORMATÉ -->
+                        <td class="py-3 text-right font-mono font-bold tracking-tight text-sm {% if step.isGain %}text-emerald-600{% else %}text-zinc-900{% endif %}">
+                            {{ step.amout|number_format(2, ',', ' ') }} €
+                        </td>
+                        <!-- ACTIONS DISCRÈTES -->
+                        <td class="py-3 text-right">
+                            <div class="flex gap-1 justify-end">
+                                <a href="{{ path('app_step_show', {'id': step.id}) }}" class="inline-flex items-center justify-center px-2 py-1 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 font-medium rounded-md text-xs transition-colors" title="Détails">
+                                    Ouvrir
+                                </a>
+                                <a href="{{ path('app_step_edit', {'id': step.id}) }}" class="p-1 rounded text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Éditer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <!-- ÉTAT VIDE TECHNIQUE -->
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-xs italic text-zinc-400 font-normal">
+                            Aucun flux financier n'a été répertorié dans le journal pour le moment.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

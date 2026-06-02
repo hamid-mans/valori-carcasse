@@ -1,0 +1,6 @@
+<form method="post" action="{{ path('app_product_delete', {'id': product.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce produit ainsi que tout son historique de sessions ?');" class="w-full">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete_product' ~ product.id) }}">
+    <button type="submit" class="inline-flex items-center justify-center w-full px-3 py-1.5 border border-rose-200 text-rose-600 bg-white hover:bg-rose-600 hover:text-white font-medium rounded-md text-xs transition-colors focus:outline-none">
+        Supprimer la fiche produit
+    </button>
+</form>

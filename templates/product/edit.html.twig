@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier le Produit - Valori-Carcasse{% endblock %}
+
+{% block body %}
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Configuration du Produit</h1>
+        <p class="text-xs text-zinc-500 mt-1">Mettez à jour les informations structurelles de la matière première ou de la carcasse.</p>
+    </div>
+
+    <div class="bg-white border border-zinc-200 rounded-md p-6 max-w-xl">
+
+        {{ include('product/_form.html.twig') }}
+
+        <div class="mt-6 pt-4 border-t border-zinc-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+            <a href="{{ path('app_product_show', {'id': product.id}) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 font-medium rounded-md text-xs transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+                Annuler et revenir
+            </a>
+
+            <div class="w-full sm:w-48">
+                {{ include('product/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

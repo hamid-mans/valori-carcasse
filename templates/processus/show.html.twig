@@ -1,0 +1,213 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Session : {{ processus.name }}{% endblock %}
+
+{% block body %}
+	<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+		<div>
+			<h1 class="text-2xl font-bold tracking-tight text-zinc-900 uppercase font-mono">{{ processus.name }}</h1>
+			<p class="text-xs text-zinc-500 mt-1">
+				Produit associé : <span class="font-bold uppercase font-mono text-zinc-900 bg-zinc-100 border border-zinc-200 px-1.5 py-0.5 rounded text-[11px]">{{ processus.product.name }}</span>
+			</p>
+		</div>
+		<div class="flex items-center gap-2 w-full sm:w-auto">
+			<a href="{{ path('app_product_show', {'id': processus.product.id}) }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 font-medium rounded-md text-xs transition-colors w-full sm:w-auto">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+				</svg>
+				Retour au produit
+			</a>
+			<a href="{{ path('app_processus_edit', {'id': processus.id}) }}" class="inline-flex items-center justify-center px-3 py-1.5 bg-zinc-100 text-zinc-700 hover:bg-zinc-200 font-medium rounded-md text-xs transition-colors w-full sm:w-auto">
+				Configurer
+			</a>
+		</div>
+	</div>
+
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+		<div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-1 h-fit">
+			<h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-100 pb-2">Résumé Financier</h2>
+			<table class="table w-full text-xs">
+				<tbody class="divide-y divide-zinc-100">
+				<tr>
+					<td class="py-2.5 pl-0 font-medium text-zinc-500">Enregistré le :</td>
+					<td class="py-2.5 pr-0 text-right font-mono text-zinc-900">{{ processus.createdAt|date('d/m/Y à H:i') }}</td>
+				</tr>
+				<tr>
+					<td class="py-3 pl-0 font-semibold text-zinc-900">Solde Net Final :</td>
+					<td class="py-3 pr-0 text-right font-mono font-bold text-sm tracking-tight {% if processus.soldeFinal >= 0 %}text-zinc-900{% else %}text-rose-600{% endif %}">
+						{{ processus.soldeFinal|number_format(2, ',', ' ') }} €
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-2">
+			<div class="flex justify-between items-center mb-4 border-b border-zinc-100 pb-2">
+				<h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400">Flux financiers (Étapes de la session)</h2>
+				<a href="{{ path('app_step_new', {'processus_id': processus.id}) }}" class="inline-flex items-center justify-center gap-1 px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md text-xs transition-colors">
+					+ Ajouter une étape
+				</a>
+			</div>
+
+			{% if processus.steps is not empty %}
+				<div class="overflow-x-auto">
+					<table class="table w-full text-xs">
+						<thead>
+						<tr class="border-b border-zinc-100 text-zinc-400 uppercase tracking-wider text-[10px] font-semibold">
+							<th class="pb-2 text-left font-medium">Libellé</th>
+							<th class="pb-2 text-center font-medium">Nature</th>
+							<th class="pb-2 text-right font-medium">Montant</th>
+							<th class="pb-2 w-16"></th>
+						</tr>
+						</thead>
+						<tbody class="divide-y divide-zinc-100">
+						{% for step in processus.steps %}
+							<tr class="hover:bg-zinc-50/50 transition-colors">
+								<td class="py-3 font-semibold text-zinc-900 text-sm tracking-tight">{{ step.name }}</td>
+								<td class="py-3 text-center">
+									{% if step.isGain %}
+										<span class="inline-block font-mono text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded">VALO</span>
+									{% else %}
+										<span class="inline-block font-mono text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200/60 px-1.5 py-0.5 rounded">CHARGE</span>
+									{% endif %}
+								</td>
+								<td class="py-3 text-right font-mono font-bold text-xs {% if step.isGain %}text-emerald-600{% else %}text-rose-600{% endif %}">
+									{# Correction ici aussi sur l'affichage si nécessaire #}
+									{% if step.isGain %}+{% else %}-{% endif %} {{ (step.amount ?? step.amout)|number_format(2, ',', ' ') }} €
+								</td>
+								<td class="py-3 text-right">
+									<div class="inline-flex items-center justify-end gap-1">
+										<a href="{{ path('app_step_edit', {'id': step.id}) }}" class="p-1 rounded text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Modifier l'étape">
+											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+												<path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+											</svg>
+										</a>
+
+										<form method="post" action="{{ path('app_step_delete', {'id': step.id}) }}" onsubmit="return confirm('Supprimer l\'étape &quot;{{ step.name }}&quot; ?');" class="inline">
+											<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ step.id) }}">
+											<button class="p-1 rounded text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Supprimer l'étape">
+												<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+													<path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+												</svg>
+											</button>
+										</form>
+									</div>
+								</td>
+							</tr>
+						{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			{% else %}
+				<div class="text-center py-6 border border-dashed border-zinc-200 rounded-md">
+					<p class="text-xs italic text-zinc-400 font-normal">Aucune étape financière enregistrée pour cette session.</p>
+				</div>
+			{% endif %}
+		</div>
+	</div>
+
+	{% if processus.steps is not empty %}
+		<div class="bg-white border border-zinc-200 rounded-md p-5 mt-6">
+			<h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-100 pb-2">Comparatif de l'impact financier brut par poste</h2>
+			<div class="w-full h-80">
+				<canvas id="sessionSingleChart"></canvas>
+			</div>
+		</div>
+	{% endif %}
+
+	{% if processus.steps is not empty %}
+		<script>
+            document.addEventListener("turbo:load", function() {
+                const canvasEl = document.getElementById('sessionSingleChart');
+                if (!canvasEl) return;
+                const ctx = canvasEl.getContext('2d');
+
+                const stepLabels = [];
+                const stepAmounts = [];
+                const backgroundColors = [];
+                const borderColors = [];
+
+				{# Utilisation d'une sécurité double pour le nom du champ (amount ou amout) #}
+				{% for step in processus.steps %}
+                stepLabels.push("{{ step.name|e('js') }}");
+
+				{% set val = step.amount ?? step.amout ?? 0 %}
+
+				{% if step.isGain %}
+                stepAmounts.push({{ val }});
+                backgroundColors.push('rgba(16, 185, 129, 0.15)'); // Vert d'eau transparent
+                borderColors.push('#10b981');
+				{% else %}
+                stepAmounts.push(-{{ val }});
+                backgroundColors.push('rgba(225, 29, 72, 0.12)'); // Rose/Rouge transparent
+                borderColors.push('#e11d48');
+				{% endif %}
+				{% endfor %}
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: stepLabels,
+                        datasets: [{
+                            label: 'Impact financier direct',
+                            data: stepAmounts,
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 1.5,
+                            borderRadius: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#18181b',
+                                titleFont: { size: 11, weight: '600' },
+                                bodyFont: { size: 11, family: 'monospace' },
+                                padding: 10,
+                                borderRadius: 4,
+                                callbacks: {
+                                    label: function(context) {
+                                        let val = context.parsed.y;
+                                        return ' Montant brut : ' + new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    color: '#71717a',
+                                    font: { size: 10, family: 'monospace' },
+                                    callback: function(value) { return value + ' €'; }
+                                },
+                                grid: {
+                                    color: function(context) {
+                                        if (context.tick.value === 0) return '#18181b'; // Ligne 0€
+                                        return '#f4f4f5';
+                                    },
+                                    lineWidth: function(context) {
+                                        return context.tick.value === 0 ? 1.5 : 1;
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#18181b',
+                                    font: { size: 10, weight: '500' },
+                                    maxRotation: 45,
+                                    minRotation: 0
+                                },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            });
+		</script>
+	{% endif %}
+{% endblock %}

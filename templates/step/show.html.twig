@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détail de l'étape #{{ step.id }} - Valori-Carcasse{% endblock %}
+
+{% block body %}
+    <!-- ENTÊTE DE FICHE TECHNIQUE -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-zinc-900 font-mono uppercase">{{ step.name }}</h1>
+            <p class="text-xs text-zinc-500 mt-1">Fiche d'exploitation unitaire de l'élément comptable rattaché.</p>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <a href="{{ path('app_step_index') }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 font-medium rounded-md text-xs transition-colors w-full sm:w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+                Retour au journal
+            </a>
+            <a href="{{ path('app_step_edit', {'id': step.id}) }}" class="inline-flex items-center justify-center px-3 py-1.5 bg-zinc-100 text-zinc-700 hover:bg-zinc-200 font-medium rounded-md text-xs transition-colors w-full sm:w-auto">
+                Modifier l'étape
+            </a>
+        </div>
+    </div>
+
+    <!-- CARTE DE CONSULTATION ANALYTIQUE -->
+    <div class="max-w-xl bg-white border border-zinc-200 rounded-md p-5 mb-6">
+        <h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-100 pb-2">Données d'exploitation</h2>
+
+        <table class="table w-full text-xs">
+            <tbody class="divide-y divide-zinc-100">
+            <tr>
+                <td class="py-2.5 pl-0 font-medium text-zinc-500">Identifiant système :</td>
+                <td class="py-2.5 pr-0 text-right font-mono text-zinc-400">#{{ step.id }}</td>
+            </tr>
+            <tr>
+                <td class="py-2.5 pl-0 font-medium text-zinc-500">Désignation du flux :</td>
+                <td class="py-2.5 pr-0 text-right font-semibold text-zinc-900">{{ step.name }}</td>
+            </tr>
+            <tr>
+                <td class="py-2.5 pl-0 font-medium text-zinc-500">Nature de l'impact :</td>
+                <td class="py-2.5 pr-0 text-right">
+                    {% if step.isGain %}
+                        <span class="inline-block font-mono text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded tracking-wider">VALORISATION (+)</span>
+                    {% else %}
+                        <span class="inline-block font-mono text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-200/60 px-1.5 py-0.5 rounded tracking-wider">CHARGE (-)</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="py-2.5 pl-0 font-medium text-zinc-500">Montant unitaire :</td>
+                <td class="py-2.5 pr-0 text-right font-mono font-bold text-sm {% if step.isGain %}text-emerald-600{% else %}text-zinc-900{% endif %}">
+                    {{ step.amout|number_format(2, ',', ' ') }} €
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PANNEAU DE SÉCURITÉ / DESTRUCTION -->
+    <div class="max-w-xl bg-zinc-50 border border-zinc-200 rounded-md p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="space-y-0.5">
+            <p class="text-xs font-semibold text-zinc-900">Zone de maintenance</p>
+            <p class="text-[11px] text-zinc-400">La suppression de cette ligne recalculera instantanément le solde de la session associée.</p>
+        </div>
+        <div class="w-full sm:w-auto text-right">
+            {{ include('step/_delete_form.html.twig') }}
+        </div>
+    </div>
+{% endblock %}

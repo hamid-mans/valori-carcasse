@@ -1,0 +1,203 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Produit : {{ product.name }}{% endblock %}
+
+{% block body %}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-zinc-900 uppercase font-mono">{{ product.name }}</h1>
+            <p class="text-xs text-zinc-500 mt-1">Fiche d'exploitation technique et sessions de valorisation associées.</p>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <a href="{{ path('app_home') }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 font-medium rounded-md text-xs transition-colors w-full sm:w-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+                Retour
+            </a>
+            <a href="{{ path('app_product_edit', {'id': product.id}) }}" class="inline-flex items-center justify-center px-3 py-1.5 bg-zinc-100 text-zinc-700 hover:bg-zinc-200 font-medium rounded-md text-xs transition-colors w-full sm:w-auto">
+                Modifier
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-1 h-fit">
+            <h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-100 pb-2">Spécifications Matière</h2>
+            <table class="table w-full text-xs mb-6">
+                <tbody>
+                <tr>
+                    <td class="py-2 pl-0 font-medium text-zinc-500">Désignation :</td>
+                    <td class="py-2 pr-0 text-right font-mono font-bold text-zinc-900 uppercase">{{ product.name }}</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="pt-4 border-t border-zinc-100">
+                {{ include('product/_delete_form.html.twig') }}
+            </div>
+        </div>
+
+        <div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-2">
+            <div class="flex justify-between items-center mb-4 border-b border-zinc-100 pb-2">
+                <h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400">Sessions de valorisation rattachées</h2>
+                <a href="{{ path('app_processus_new', {'product_id': product.id}) }}" class="inline-flex items-center justify-center gap-1 px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md text-xs transition-colors">
+                    + Nouvelle Session
+                </a>
+            </div>
+
+            {% if product.processuses is not empty %}
+                <div class="overflow-x-auto">
+                    <table class="table w-full text-xs">
+                        <thead>
+                        <tr class="text-zinc-500 uppercase tracking-wider text-[10px] font-semibold border-b border-zinc-100">
+                            <th class="pb-2 text-left">Nom du processus</th>
+                            <th class="pb-2 text-center">Date de création</th>
+                            <th class="pb-2 text-right">Solde Net</th>
+                            <th class="pb-2 w-24"></th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-100">
+                        {% for processus in product.processuses %}
+                            <tr class="hover:bg-zinc-50/50 transition-colors">
+                                <td class="py-3 font-semibold text-zinc-900 text-sm tracking-tight">
+                                    {{ processus.name }}
+                                </td>
+                                <td class="py-3 text-center text-zinc-500 font-mono">
+                                    {{ processus.createdAt|date('d/m/Y') }}
+                                </td>
+                                <td class="py-3 text-right font-mono font-bold {% if processus.soldeFinal >= 0 %}text-zinc-900{% else %}text-rose-600{% endif %}">
+                                    {{ processus.soldeFinal|number_format(2, ',', ' ') }} €
+                                </td>
+                                <td class="py-3 text-right">
+                                    <div class="flex gap-1 justify-end">
+                                        <a href="{{ path('app_processus_show', {'id': processus.id}) }}" class="inline-flex items-center justify-center px-2 py-1 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 font-medium rounded-md text-xs transition-colors" title="Voir le détail et les étapes">
+                                            Ouvrir
+                                        </a>
+                                        <a href="{{ path('app_processus_edit', {'id': processus.id}) }}" class="p-1 rounded text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" title="Configuration">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-6 border border-dashed border-zinc-200 rounded-md">
+                    <p class="text-xs italic text-zinc-400 font-normal">Aucune session d'équarrissage ou de découpe pour ce produit.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if product.processuses is not empty %}
+        <div class="bg-white border border-zinc-200 rounded-md p-5">
+            <h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-100 pb-2">Suivi cumulé de l'avancement des flux par macro-processus</h2>
+            <div class="w-full h-80">
+                <canvas id="processusCompareChart"></canvas>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if product.processuses is not empty %}
+        <script>
+            document.addEventListener("turbo:load", function() {
+                const canvasEl = document.getElementById('processusCompareChart');
+                if (!canvasEl) return;
+                const ctx = canvasEl.getContext('2d');
+
+                const labels = [];
+                const globalData = [];
+                let totalAccumule = 0;
+
+                {# Boucle Twig ultra-propre et sans aucune scorie #}
+                {% for processus in product.processuses %}
+                labels.push("{{ processus.name|u.truncate(25, '...') }}");
+
+                {% set soldeProcessus = 0 %}
+                {% for step in processus.steps %}
+                {% if step.isGain %}
+                {% set soldeProcessus = soldeProcessus + step.amout %}
+                {% else %}
+                {% set soldeProcessus = soldeProcessus - step.amout %}
+                {% endif %}
+                {% endfor %}
+
+                totalAccumule += {{ soldeProcessus }};
+                globalData.push(totalAccumule);
+                {% endfor %}
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Marge brute cumulée (€)",
+                            data: globalData,
+                            borderColor: '#18181b',
+                            backgroundColor: 'rgba(24, 24, 27, 0.04)',
+                            fill: true,
+                            borderWidth: 2.5,
+                            tension: 0.15,
+                            pointBackgroundColor: '#18181b',
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    color: '#18181b',
+                                    font: { size: 11, weight: '600' }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#18181b',
+                                titleFont: { size: 11, weight: '600' },
+                                bodyFont: { size: 11, family: 'monospace' },
+                                padding: 10,
+                                borderRadius: 4,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) label += ' : ';
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    color: '#71717a',
+                                    font: { size: 10, family: 'monospace' },
+                                    callback: function(value) { return value + ' €'; }
+                                },
+                                grid: { color: '#f4f4f5' }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#18181b',
+                                    font: { size: 10, weight: '500' }
+                                },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
+    {% endif %}
+{% endblock %}

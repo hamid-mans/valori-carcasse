@@ -1,0 +1,134 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analyse Comparative - Valori-Carcasse{% endblock %}
+
+{% block body %}
+    <div class="flex h-screen bg-base-200 overflow-hidden">
+
+        <!-- SIDEBAR -->
+        <div class="w-64 bg-base-100 shadow-xl flex flex-col justify-between z-10">
+            <div>
+                <div class="p-6 font-bold text-xl tracking-wider text-primary border-b border-base-200 flex flex-col">
+                    <span>VALORI</span><span class="text-xs text-neutral-content font-normal mt-[-4px]">CARCASSE</span>
+                </div>
+                <ul class="menu p-4 w-full gap-2 text-base font-medium">
+                    <li><a href="{{ path('app_dashboard') }}" class="hover:bg-base-200">Tableau de bord</a></li>
+                    <li><a href="{{ path('app_compare') }}" class="active bg-primary text-primary-content">Analyse Comparative</a></li>
+                </ul>
+            </div>
+            <div class="p-4 text-xs text-center text-neutral-content border-t border-base-200">DEC 2026</div>
+        </div>
+
+        <!-- CONTENU -->
+        <div class="flex-1 flex flex-col h-full p-8 overflow-hidden">
+            <div class="mb-6 shrink-0">
+                <h1 class="text-3xl font-bold tracking-tight">Analyse Comparative Temporelle</h1>
+                <p class="text-neutral-content text-sm mt-1">Sélectionnez un produit puis comparez deux modélisations historiques</p>
+            </div>
+
+            <!-- SÉLECTIONNEURS DE FLUX -->
+            <form method="get" action="{{ path('app_compare') }}" class="bg-base-100 p-4 rounded-xl shadow-md border border-base-200 gap-4 flex flex-col sm:flex-row items-end shrink-0 mb-6">
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text font-bold">1. Choisir le Produit</span></label>
+                    <select name="product_id" class="select select-bordered w-full" onchange="this.form.submit()">
+                        <option value="">-- Sélectionner un produit --</option>
+                        {% for p in products %}
+                            <option value="{{ p.id }}" {% if selectedProduct and selectedProduct.id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if selectedProduct %}
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text font-bold">Période A</span></label>
+                        <select name="p1" class="select select-bordered w-full">
+                            {% for proc in selectedProduct.processuses %}
+                                <option value="{{ proc.id }}" {% if p1 and p1.id == proc.id %}selected{% endif %}>{{ proc.name }} ({{ proc.createdAt|date('d/m/Y') }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text font-bold">Période B</span></label>
+                        <select name="p2" class="select select-bordered w-full">
+                            {% for proc in selectedProduct.processuses %}
+                                <option value="{{ proc.id }}" {% if p2 and p2.id == proc.id %}selected{% endif %}>{{ proc.name }} ({{ proc.createdAt|date('d/m/Y') }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lancer l'analyse</button>
+                {% endif %}
+            </form>
+
+            <!-- GRAPHIQUES ET CONCLUSIONS -->
+            {% if analysis %}
+                <div class="flex-1 overflow-y-auto space-y-6 pr-2">
+                    <div class="stats shadow bg-base-100 w-full border border-base-200">
+                        <div class="stat">
+                            <div class="stat-title">Écart Valorisation</div>
+                            <div class="stat-value {% if analysis.diffGains >= 0 %}text-success{% else %}text-error{% endif %}">
+                                {{ analysis.diffGains|number_format(2, ',', ' ') }} €
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-title">Écart Coûts / Process</div>
+                            <div class="stat-value {% if analysis.diffCosts <= 0 %}text-success{% else %}text-error{% endif %}">
+                                {{ analysis.diffCosts|number_format(2, ',', ' ') }} €
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-title">Écart Marge Nette</div>
+                            <div class="stat-value {% if analysis.diffSolde >= 0 %}text-success{% else %}text-error{% endif %}">
+                                {{ analysis.diffSolde|number_format(2, ',', ' ') }} €
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card bg-base-100 shadow border border-base-200 p-6 flex justify-center items-center">
+                            <canvas id="compareChart" class="max-h-64"></canvas>
+                        </div>
+                        <div class="alert {% if analysis.diffSolde >= 0 %}alert-success bg-success/10{% else %}alert-error bg-error/10{% endif %} font-medium p-6">
+                            <div>
+                                <h3 class="font-bold text-lg mb-2">Diagnostic de l'expert-comptable :</h3>
+                                <p class="text-sm">
+                                    {% if analysis.diffSolde >= 0 %}
+                                        La session <strong>{{ p2.name }}</strong> est plus rentable de {{ analysis.diffSolde|abs|number_format(2, ',', ' ') }} € face à <strong>{{ p1.name }}</strong>.
+                                        {% if analysis.diffCosts < 0 %} Cette performance découle d'un meilleur contrôle des charges logistiques et industrielles.{% else %} L'augmentation de la rentabilité provient de la hausse des cours ou volumes valorisés.{% endif %}
+                                    {% else %}
+                                        La session <strong>{{ p2.name }}</strong> subit une contraction de marge de {{ analysis.diffSolde|abs|number_format(2, ',', ' ') }} €.
+                                        {% if analysis.diffCosts > 0 %} L'inflation constatée sur les postes de traitement thermique ou d'acheminement dégrade le solde d'exploitation.{% else %} La dépréciation des marchés des sous-produits animaux impacte négativement l'équilibre.{% endif %}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    const ctxCompare = document.getElementById('compareChart').getContext('2d');
+                    new Chart(ctxCompare, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Gains', 'Coûts', 'Marge Nette'],
+                            datasets: [
+                                {
+                                    label: '{{ p1.name }}',
+                                    data: [{{ p1.gainsTotal }}, {{ p1.costsTotal }}, {{ p1.soldeFinal }}],
+                                    backgroundColor: '#661AE6',
+                                    borderRadius: 4
+                                },
+                                {
+                                    label: '{{ p2.name }}',
+                                    data: [{{ p2.gainsTotal }}, {{ p2.costsTotal }}, {{ p2.soldeFinal }}],
+                                    backgroundColor: '#1FB2A6',
+                                    borderRadius: 4
+                                }
+                            ]
+                        },
+                        options: { responsive: true }
+                    });
+                </script>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

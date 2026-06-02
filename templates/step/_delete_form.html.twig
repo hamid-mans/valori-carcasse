@@ -1,0 +1,6 @@
+<form method="post" action="{{ path('app_step_delete', {'id': step.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cette étape financière ?');" class="inline-block">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ step.id) }}">
+    <button type="submit" class="inline-flex items-center justify-center px-2.5 py-1.5 border border-rose-200 text-rose-600 bg-white hover:bg-rose-600 hover:text-white font-medium rounded-md text-xs transition-colors focus:outline-none">
+        Supprimer l'étape
+    </button>
+</form>

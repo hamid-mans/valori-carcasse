@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% if isEdit is defined and isEdit %}Modifier{% else %}Nouvelle{% endif %} Session - Valori-Carcasse{% endblock %}
+
+{% block body %}
+	<div class="max-w-xl mx-auto my-4">
+		<!-- ENTÊTE DU FORMULAIRE -->
+		<div class="mb-6">
+			<h1 class="text-2xl font-bold tracking-tight text-zinc-900">
+				{% if isEdit is defined and isEdit %}Modifier la session{% else %}Nouvelle session analytique{% endif %}
+			</h1>
+			<p class="text-xs text-zinc-500 mt-1">
+				Renseignez les paramètres et associez la session au produit concerné pour le suivi des flux.
+			</p>
+		</div>
+
+		<!-- CONTENEUR FORMULAIRE STYLE SHADCN -->
+		<div class="bg-white border border-zinc-200 rounded-md p-6">
+			{{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
+
+			<!-- Les classes d'inputs et labels généraux injectées via Twig ou ton FormType -->
+			<div class="space-y-1 structure-form-zinc">
+				{{ form_row(form.name, {
+					'label_attr': {'class': 'block text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-1'},
+					'attr': {'class': 'w-full px-3 py-2 bg-white border border-zinc-200 rounded-md text-xs text-zinc-900 focus:outline-none focus:border-zinc-400 font-medium'}
+				}) }}
+			</div>
+
+			<div class="space-y-1 structure-form-zinc">
+				{{ form_row(form.createdAt, {
+					'label_attr': {'class': 'block text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-1'},
+					'attr': {'class': 'w-full px-3 py-2 bg-white border border-zinc-200 rounded-md text-xs text-zinc-900 focus:outline-none focus:border-zinc-400 font-mono'}
+				}) }}
+			</div>
+
+			<div class="space-y-1 structure-form-zinc">
+				{{ form_row(form.product, {
+					'label_attr': {'class': 'block text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-1'},
+					'attr': {'class': 'w-full px-3 py-2 bg-white border border-zinc-200 rounded-md text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-400'}
+				}) }}
+			</div>
+
+			<!-- BARRE D'ACTIONS CHIRURGICALE -->
+			<div class="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100 mt-6">
+				<a href="{{ path('app_dashboard') }}" class="inline-flex items-center justify-center px-3 py-2 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 font-medium rounded-md text-xs transition-colors">
+					Annuler
+				</a>
+				<button type="submit" class="inline-flex items-center justify-center px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md text-xs transition-colors">
+					Enregistrer la session
+				</button>
+			</div>
+
+			{{ form_end(form) }}
+		</div>
+	</div>
+{% endblock %}
