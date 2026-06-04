@@ -2,7 +2,7 @@
 FROM dunglas/frankenphp:1-php8.3-alpine
 
 # 1. Installation des dépendances système nécessaires
-RUN apk add --no-repeat --no-cache \
+RUN apk add --no-cache --no-progress \
     acl \
     file \
     gettext \
