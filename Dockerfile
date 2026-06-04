@@ -17,7 +17,7 @@ RUN install-php-extensions \
     apcu
 
 # 3. Configuration de l'environnement de Production
-ENV APP_ENV=prod
+ENV APP_ENV=dev
 # ON SUPPRIME LA VARIABLE FRANKENPHP_CONFIG QUI REPRÉSENTE L'IMPORT EMBÊTANT
 
 # Remplacement du php.ini de développement par celui de production
