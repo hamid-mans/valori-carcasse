@@ -21,7 +21,7 @@ services:
       APP_SECRET: "ChangerCeSecretEnProductionPourSecuriserLApp"
     depends_on:
       - db
-    command: sh -c "php bin/console importmap:install && php bin/console asset-mapper:compile && php bin/console cache:warmup --env=prod"
+    command: sh -c "php bin/console importmap:install && php bin/console asset-map:compile && php bin/console cache:warmup --env=prod"
 
   # La Base de données (MariaDB)
   db:
