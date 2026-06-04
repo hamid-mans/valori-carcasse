@@ -11,10 +11,11 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "443:443/udp" # Important pour HTTP/3 (géré nativement par Caddy)
+      - "443:443/udp"
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+      - ./Caddyfile:/app/Caddyfile # <-- AJOUTE CETTE LIGNE ICI
     environment:
       DATABASE_URL: "mysql://valori_user:valori_secure_password@db:3306/valori_carcasse?serverVersion=10.11-MariaDB"
       APP_SECRET: "ChangerCeSecretEnProductionPourSecuriserLApp"
