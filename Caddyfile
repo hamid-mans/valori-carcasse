@@ -1,6 +1,6 @@
 # Caddyfile
 # Remplace par ton vrai nom de domaine (Caddy gérera le SSL Let's Encrypt tout seul)
-2.24.14.154 {
+:80 {
     root * /app/public
     encode gzip zstd
 
