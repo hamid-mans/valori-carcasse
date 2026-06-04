@@ -17,7 +17,7 @@ RUN install-php-extensions \
     apcu
 
 # 3. Configuration de l'environnement de Production
-ENV APP_ENV=dev
+ENV APP_ENV=prod
 # ON SUPPRIME LA VARIABLE FRANKENPHP_CONFIG QUI REPRÉSENTE L'IMPORT EMBÊTANT
 
 # Remplacement du php.ini de développement par celui de production
@@ -40,6 +40,11 @@ RUN chown -R www-data:www-data /app \
     && mkdir -p var/cache var/log \
     && setfacl -R -m u:www-data:rwX var \
     && setfacl -R -d -m u:www-data:rwX var
+
+RUN set -eux; \
+    php bin/console importmap:install; \
+    php bin/console asset-mapper:compile; \
+    php bin/console cache:warmup --env=prod
 
 # 6. Configuration de sécurité Git + Installation des dépendances
 RUN git config --global --add safe.directory /app \
