@@ -41,11 +41,6 @@ RUN chown -R www-data:www-data /app \
     && setfacl -R -m u:www-data:rwX var \
     && setfacl -R -d -m u:www-data:rwX var
 
-RUN set -eux; \
-    php bin/console importmap:install; \
-    php bin/console asset-mapper:compile; \
-    php bin/console cache:warmup --env=prod
-
 # 6. Configuration de sécurité Git + Installation des dépendances
 RUN git config --global --add safe.directory /app \
     && composer install --no-dev --prefer-dist --no-scripts --no-progress --no-interaction
