@@ -1,18 +1,17 @@
+{
+# Pas de configuration globale spécifique requise ici
+}
+
 :80 {
-# Définition de la racine du serveur web (le dossier public de Symfony)
-    root * /app/public
-
-# Compresse les réponses pour de meilleures performances
-    encode gzip zstd
-
-# Exécute l'application Symfony via FrankenPHP
-    php_server
-
-# Sert les fichiers statiques (CSS, JS, images) directement
-    file_server
-
-# Configuration des logs d'accès
     log {
             output file /var/log/caddy_access.log
         }
+
+# Active FrankenPHP pour ce site
+    frankenphp
+
+# Racine du projet Symfony
+    root * /app/public
+    encode gzip zstd
+    file_server
 }
