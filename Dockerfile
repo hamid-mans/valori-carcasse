@@ -1,5 +1,5 @@
 # templates/docker/Dockerfile
-FROM dunglas/frankenphp:1-php8.3-alpine
+FROM dunglas/frankenphp:1-php8.4-alpine
 
 # 1. Installation des dépendances système nécessaires
 RUN apk add --no-cache --no-progress \
