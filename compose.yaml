@@ -1,25 +1,42 @@
+version: '3.8'
 
 services:
-###> doctrine/doctrine-bundle ###
-  database:
-    image: postgres:${POSTGRES_VERSION:-16}-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-app}
-      # You should definitely change the password in production
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
-      POSTGRES_USER: ${POSTGRES_USER:-app}
-    healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
-      timeout: 5s
-      retries: 5
-      start_period: 60s
+  # L'application Symfony + Serveur Web (FrankenPHP)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: valoricarcasse_app
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # Important pour HTTP/3 (géré nativement par Caddy)
     volumes:
-      - database_data:/var/lib/postgresql/data:rw
-      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-      # - ./docker/db/data:/var/lib/postgresql/data:rw
-###< doctrine/doctrine-bundle ###
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      DATABASE_URL: "mysql://valori_user:valori_secure_password@db:3306/valori_carcasse?serverVersion=10.11-MariaDB"
+      APP_SECRET: "ChangerCeSecretEnProductionPourSecuriserLApp"
+    depends_on:
+      - db
+
+  # La Base de données (MariaDB)
+  db:
+    image: mariadb:10.11
+    container_name: valoricarcasse_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secure_password
+      MYSQL_DATABASE: valori_carcasse
+      MYSQL_USER: valori_user
+      MYSQL_PASSWORD: valori_secure_password
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306" # Évite d'exposer la BDD publiquement sur internet
 
 volumes:
-###> doctrine/doctrine-bundle ###
-  database_data:
-###< doctrine/doctrine-bundle ###
+  caddy_data:
+  caddy_config:
+  mariadb_data:
