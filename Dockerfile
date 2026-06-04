@@ -39,8 +39,8 @@ RUN chown -R www-data:www-data /app \
     && setfacl -R -m u:www-data:rwX var \
     && setfacl -R -d -m u:www-data:rwX var
 
-# 6. Installation des dépendances sans les scripts (évite les erreurs de build)
-RUN composer install --no-dev --prefer-dist --no-scripts --no-progress --non-interactive
+RUN git config --global --add safe.directory /app \
+    && composer install --no-dev --prefer-dist --no-scripts --no-progress --no-interaction
 
 # 7. Optimisation du dump de l'Autoloader et exécution des scripts de prod
 RUN composer dump-autoload --no-dev --classmap-authoritative \
