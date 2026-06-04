@@ -7,10 +7,10 @@
             output file /var/log/caddy_access.log
         }
 
-# Active FrankenPHP pour ce site
-    frankenphp
+# C'est "php_server" qu'il faut utiliser, pas "frankenphp"
+    php_server
 
-# Racine du projet Symfony
+# Racine du projet Symfony (le dossier public)
     root * /app/public
     encode gzip zstd
     file_server
