@@ -1,15 +1,17 @@
-# Caddyfile
-# Remplace par ton vrai nom de domaine (Caddy gérera le SSL Let's Encrypt tout seul)
 :80 {
+# Définition de la racine du serveur web (le dossier public de Symfony)
     root * /app/public
+
+# Compresse les réponses pour de meilleures performances
     encode gzip zstd
 
 # Exécute l'application Symfony via FrankenPHP
     php_server
 
-# Gestion des fichiers statiques directement
+# Sert les fichiers statiques (CSS, JS, images) directement
     file_server
 
+# Configuration des logs d'accès
     log {
             output file /var/log/caddy_access.log
         }
