@@ -17,7 +17,7 @@ services:
       - caddy_config:/config
       - ./Caddyfile:/app/Caddyfile # <-- AJOUTE CETTE LIGNE ICI
     environment:
-      DATABASE_URL: "mysql://valori_user:valori_secure_password@db:3306/valori_carcasse?serverVersion=10.11-MariaDB"
+      DATABASE_URL: "mysql://valori_user:valori_secure_password@db:3306/valori_carcasse?serverVersion=mariadb-10.11.0"
       APP_SECRET: "ChangerCeSecretEnProductionPourSecuriserLApp"
     depends_on:
       - db
