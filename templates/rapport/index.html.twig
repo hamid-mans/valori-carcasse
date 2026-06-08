@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rapports de Gestion Multi-Produits{% endblock %}
+
+{% block body %}
+    {# Affichage des messages d'erreur de sélection #}
+    {% for message in app.flashes('error') %}
+        <div class="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded text-xs font-medium">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Rapports de Gestion Analytique</h1>
+        <p class="text-xs text-zinc-500 mt-1">Cochez les matières brutes que vous souhaitez analyser et comparer au sein d'un même rapport.</p>
+    </div>
+
+    <form action="{{ path('app_rapport_generate') }}" method="POST" data-turbo="false">
+        <div class="bg-white border border-zinc-200 rounded-md overflow-hidden">
+            <div class="p-4 border-b border-zinc-100 bg-zinc-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400">Catalogue des matières disponibles</h2>
+                <div class="flex gap-2">
+                    <button type="button" onclick="toggleAll(true)" class="text-[11px] text-zinc-500 hover:text-zinc-900 font-medium">Tout cocher</button>
+                    <span class="text-zinc-300 text-[11px]">•</span>
+                    <button type="button" onclick="toggleAll(false)" class="text-[11px] text-zinc-500 hover:text-zinc-900 font-medium">Tout décocher</button>
+                </div>
+            </div>
+
+            <ul class="divide-y divide-zinc-100 text-xs">
+                {% for product in products %}
+                    <li class="p-4 flex items-center justify-between hover:bg-zinc-50/40 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" name="selected_products[]" value="{{ product.id }}" class="product-checkbox w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900">
+                            <div>
+                                <span class="font-mono font-bold text-zinc-900 uppercase tracking-tight text-sm">{{ product.name }}</span>
+                                <div class="text-zinc-400 text-[11px] mt-0.5">{{ product.processuses|length }} session(s) d'exploitation rattachée(s)</div>
+                            </div>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="p-8 text-center text-zinc-400 italic">Aucun produit disponible en base de données.</li>
+                {% endfor %}
+            </ul>
+
+            {% if products is not empty %}
+                <div class="p-4 bg-zinc-50 border-t border-zinc-100 flex justify-end">
+                    {# Le bouton DOIT être ici, avant la fermeture du form #}
+                    <button type="submit" class="inline-flex items-center justify-center px-4 py-2 bg-zinc-900 text-white hover:bg-zinc-800 font-semibold rounded text-xs transition-colors shadow-sm">
+                        Générer l'audit comparatif →
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+
+    <script>
+        function toggleAll(checked) {
+            document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = checked);
+        }
+    </script>
+{% endblock %}
