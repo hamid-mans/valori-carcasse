@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # L'application Symfony + Serveur Web (FrankenPHP)
   app:
@@ -15,7 +13,7 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-      - ./Caddyfile:/app/Caddyfile # <-- AJOUTE CETTE LIGNE ICI
+      - ./Caddyfile:/app/Caddyfile
     environment:
       DATABASE_URL: "mysql://valori_user:valori_secure_password@db:3306/valori_carcasse?serverVersion=mariadb-10.11.0"
       APP_SECRET: "ChangerCeSecretEnProductionPourSecuriserLApp"
@@ -37,6 +35,21 @@ services:
       - mariadb_data:/var/lib/mysql
     ports:
       - "127.0.0.1:3306:3306" # Évite d'exposer la BDD publiquement sur internet
+
+  # L'interface graphique pour la BDD (phpMyAdmin)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: valoricarcasse_phpmyadmin
+    restart: always
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db # Fait le lien direct avec le service db ci-dessus
+      PMA_USER: valori_user
+      PMA_PASSWORD: valori_secure_password
+      UPLOAD_LIMIT: 32M # Optionnel : augmente la limite d'import de fichiers SQL si besoin
+    ports:
+      - "8080:80" # Accessible sur http://ton-serveur-ou-localhost:8080
 
 volumes:
   caddy_data:
