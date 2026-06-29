@@ -2,7 +2,7 @@
 # Pas de configuration globale spécifique requise ici
 }
 
-:80 {
+valori-carcasse.fr {
     log {
             output file /var/log/caddy_access.log
         }

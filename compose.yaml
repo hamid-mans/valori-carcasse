@@ -44,12 +44,12 @@ services:
     depends_on:
       - db
     environment:
-      PMA_HOST: db # Fait le lien direct avec le service db ci-dessus
+      PMA_HOST: db
       PMA_USER: valori_user
       PMA_PASSWORD: valori_secure_password
-      UPLOAD_LIMIT: 32M # Optionnel : augmente la limite d'import de fichiers SQL si besoin
+      UPLOAD_LIMIT: 32M
     ports:
-      - "8080:80" # Accessible sur http://ton-serveur-ou-localhost:8080
+      - "8080:80"
 
 volumes:
   caddy_data:
