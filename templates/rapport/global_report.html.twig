@@ -3,134 +3,134 @@
 {% block title %}Rapport d'Audit Stratégique Global{% endblock %}
 
 {% block body %}
-	<div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
 
-		{# En-tête du Rapport #}
-		<div class="mb-8 border-b border-zinc-200 pb-6 flex justify-between items-end">
-			<div>
-				<span class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Direction Générale — Audit Analytique</span>
-				<h1 class="text-3xl font-bold text-zinc-900 mt-1">Rapport de Performance Global</h1>
-				<p class="text-sm text-zinc-500 mt-1">Analyse comparative et croisée des filières de valorisation</p>
-			</div>
-			<div class="text-right text-xs text-zinc-400">
-				Généré le {{ "now"|date("d/m/Y H:i") }}
-			</div>
-		</div>
+        {# En-tête du Rapport #}
+        <div class="mb-8 border-b border-zinc-200 pb-6 flex justify-between items-end">
+            <div>
+                <span class="font-semibold uppercase tracking-wider text-base">Direction Générale — Audit Analytique</span>
+                <h1 class="text-3xl font-bold mt-1">Rapport de Performance Global</h1>
+                <p class="text-base mt-1">Analyse comparative et croisée des filières de valorisation</p>
+            </div>
+            <div class="text-right text-base">
+                Généré le {{ "now"|date("d/m/Y H:i") }}
+            </div>
+        </div>
 
-		{# 1. MATRICE SWOT PAR PRODUIT (FORCES & FAIBLESSES) #}
-		<div class="mb-10">
-			<h2 class="text-xl font-bold text-zinc-800 mb-4 flex items-center gap-2">
-				<span class="w-2 h-5 bg-zinc-900 rounded-sm inline-block"></span>
-				Cartographie des Performances Individuelles
-			</h2>
+        {# 1. MATRICE SWOT PAR PRODUIT (FORCES & FAIBLESSES) #}
+        <div class="mb-10">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span class="w-2 h-5 bg-zinc-900 rounded-sm inline-block"></span>
+                Cartographie des Performances Individuelles
+            </h2>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-				{% for produit in produits %}
-					<div class="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
-						{# Header du produit #}
-						<div class="bg-zinc-50 px-4 py-3 border-b border-zinc-200 flex justify-between items-center">
-							<h3 class="font-bold text-zinc-900 text-sm tracking-wide uppercase">{{ produit.name }}</h3>
-							<span class="text-xs px-2 py-0.5 rounded {% if produit.rentabiliteNet > 0 %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for produit in produits %}
+                    <div class="bg-white border border-zinc-200 rounded-lg shadow-sm overflow-hidden">
+                        {# Header du produit #}
+                        <div class="bg-zinc-50 px-4 py-3 border-b border-zinc-200 flex justify-between items-center">
+                            <h3 class="font-bold text-sm tracking-wide uppercase">{{ produit.name }}</h3>
+                            <span class="text-base px-2 py-0.5 rounded {% if produit.rentabiliteNet > 0 %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
                             Net : {{ produit.rentabiliteNet|number_format(2, ',', ' ') }} €
                         </span>
-						</div>
+                        </div>
 
-						{# Contenu SWOT Interne du produit #}
-						<div class="p-4 grid grid-cols-1 gap-4">
-							{# FORCES #}
-							<div class="bg-emerald-50/50 p-3 rounded border border-emerald-100">
-								<h4 class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-									🟢 Forces Spécifiques
-								</h4>
-								<ul class="text-xs text-zinc-600 space-y-1.5 list-disc pl-4">
-									{% if produit.name|lower == 'bovin' %}
-										<li>Forte facturation à l'intervention dès la collecte chez l'éleveur (+250 €).</li>
-										<li>Volume de chiffre d'affaires massif sur la valorisation historique (Farines : 450 €, Graisses : 340 €).</li>
-										<li>Soutien institutionnel et aides sanitaires d'équarrissage très protectrices.</li>
-									{% elseif produit.name|lower == 'volaille' %}
-										<li>Excellente rentabilité sur le segment "Petfood/Tech" pour les graisses animales (+410 €).</li>
-										<li>Coûts de collecte unitaire et de transport logistique réduits de près de 15%.</li>
-										<li>Excellente dynamique en économie circulaire avec un fort taux de bonus de revalorisation.</li>
-									{% else %}
-										<li>Rentabilité brute sur les étapes aval de transformation commerciale.</li>
-										<li>Maîtrise relative des coûts logistiques d'approvisionnement.</li>
-									{% endif %}
-								</ul>
-							</div>
+                        {# Contenu SWOT Interne du produit #}
+                        <div class="p-4 grid grid-cols-1 gap-4">
+                            {# FORCES #}
+                            <div class="bg-emerald-50/50 p-3 rounded border border-emerald-100">
+                                <h4 class="font-bold text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    🟢 Forces Spécifiques
+                                </h4>
+                                <ul class="text-base space-y-1.5 list-disc pl-4">
+                                    {% if produit.name|lower == 'bovin' %}
+                                        <li>Forte facturation à l'intervention dès la collecte chez l'éleveur (+250 €).</li>
+                                        <li>Volume de chiffre d'affaires massif sur la valorisation historique (Farines : 450 €, Graisses : 340 €).</li>
+                                        <li>Soutien institutionnel et aides sanitaires d'équarrissage très protectrices.</li>
+                                    {% elseif produit.name|lower == 'volaille' %}
+                                        <li>Excellente rentabilité sur le segment "Petfood/Tech" pour les graisses animales (+410 €).</li>
+                                        <li>Coûts de collecte unitaire et de transport logistique réduits de près de 15%.</li>
+                                        <li>Excellente dynamique en économie circulaire avec un fort taux de bonus de revalorisation.</li>
+                                    {% else %}
+                                        <li>Rentabilité brute sur les étapes aval de transformation commerciale.</li>
+                                        <li>Maîtrise relative des coûts logistiques d'approvisionnement.</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
 
-							{# FAIBLESSES #}
-							<div class="bg-rose-50/50 p-3 rounded border border-rose-100">
-								<h4 class="text-xs font-bold text-rose-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-									🔴 Faiblesses Spécifiques
-								</h4>
-								<ul class="text-xs text-zinc-600 space-y-1.5 list-disc pl-4">
-									{% if produit.name|lower == 'bovin' %}
-										<li>Coûts d'infrastructure logistique lourds (camions spécifiques, maintenance, pneumatiques).</li>
-										<li>Transformation industrielle complexe entraînant un coût d'amortissement matériel élevé.</li>
-										<li>Forte dépendance aux cours de revente des farines animales standards.</li>
-									{% elseif produit.name|lower == 'volaille' %}
-										<li>Coûts de désinfection et de bio-sécurité (protocoles salmonelle) très élevés sur site.</li>
-										<li>Processus thermique de transformation (cuisson continue et hydrolyse des plumes) extrêmement énergivore en gaz et électricité.</li>
-										<li>Traitement des effluents industriels plus complexe en station d'épuration.</li>
-									{% else %}
-										<li>Sensibilité aux variations des coûts de l'énergie (gaz/électricité) en usine.</li>
-										<li>Frais fixes d'administration et de structure incompressibles.</li>
-									{% endif %}
-								</ul>
-							</div>
-						</div>
-					</div>
-				{% endfor %}
-			</div>
-		</div>
+                            {# FAIBLESSES #}
+                            <div class="bg-rose-50/50 p-3 rounded border border-rose-100">
+                                <h4 class="font-bold text-rose-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    🔴 Faiblesses Spécifiques
+                                </h4>
+                                <ul class="text-base space-y-1.5 list-disc pl-4">
+                                    {% if produit.name|lower == 'bovin' %}
+                                        <li>Coûts d'infrastructure logistique lourds (camions spécifiques, maintenance, pneumatiques).</li>
+                                        <li>Transformation industrielle complexe entraînant un coût d'amortissement matériel élevé.</li>
+                                        <li>Forte dépendance aux cours de revente des farines animales standards.</li>
+                                    {% elseif produit.name|lower == 'volaille' %}
+                                        <li>Coûts de désinfection et de bio-sécurité (protocoles salmonelle) très élevés sur site.</li>
+                                        <li>Processus thermique de transformation (cuisson continue et hydrolyse des plumes) extrêmement énergivore en gaz et électricité.</li>
+                                        <li>Traitement des effluents industriels plus complexe en station d'épuration.</li>
+                                    {% else %}
+                                        <li>Sensibilité aux variations des coûts de l'énergie (gaz/électricité) en usine.</li>
+                                        <li>Frais fixes d'administration et de structure incompressibles.</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
 
-		{# 2. MACRO-OPPORTUNITÉS & MENACES (TRANSVERSAL) #}
-		<div class="mb-10 bg-zinc-900 text-white rounded-xl p-6 shadow-md">
-			<h2 class="text-lg font-bold mb-4 tracking-wide text-zinc-200 uppercase text-center border-b border-zinc-800 pb-2">
-				Facteurs Macro-Environnementaux (Marché & Réglementation)
-			</h2>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-				<div>
-					<h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">🚀 Opportunités Globale (Marché)</h3>
-					<ul class="text-xs text-zinc-300 space-y-2 list-disc pl-4">
-						<li>Boom de la demande européenne en biocarburants de 2ème génération (Biodiesel/Graisses industrielles).</li>
-						<li>Soutien public massif aux initiatives de décarbonation et d'indépendance énergétique industrielle.</li>
-						<li>Valorisation croissante des résidus et boues en compostage organique de proximité.</li>
-					</ul>
-				</div>
-				<div>
-					<h3 class="text-xs font-bold uppercase tracking-wider text-rose-400 mb-2">⚠️ Menaces Critiques (Risques)</h3>
-					<ul class="text-xs text-zinc-300 space-y-2 list-disc pl-4">
-						<li>Volatilité extrême des cours de l'énergie (Gaz et Électricité) impactant directement l'étape de cuisson (P06).</li>
-						<li>Resserrement des seuils réglementaires liés aux redevances des agences de l'eau (effluents lourds).</li>
-						<li>Risques sanitaires et épizooties pouvant paralyser instantanément les flux de collecte.</li>
-					</ul>
-				</div>
-			</div>
-		</div>
+        {# 2. MACRO-OPPORTUNITÉS & MENACES (TRANSVERSAL) #}
+        <div class="mb-10 bg-zinc-900 text-white rounded-xl p-6 shadow-md">
+            <h2 class="text-xl font-bold mb-4 tracking-wide text-zinc-200 uppercase text-center border-b border-zinc-800 pb-2">
+                Facteurs Macro-Environnementaux (Marché & Réglementation)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-bold uppercase tracking-wider text-amber-400 mb-2">🚀 Opportunités Globale (Marché)</h3>
+                    <ul class="text-base text-zinc-300 space-y-2 list-disc pl-4">
+                        <li>Boom de la demande européenne en biocarburants de 2ème génération (Biodiesel/Graisses industrielles).</li>
+                        <li>Soutien public massif aux initiatives de décarbonation et d'indépendance énergétique industrielle.</li>
+                        <li>Valorisation croissante des résidus et boues en compostage organique de proximité.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold uppercase tracking-wider text-rose-400 mb-2">⚠️ Menaces Critiques (Risques)</h3>
+                    <ul class="text-base text-zinc-300 space-y-2 list-disc pl-4">
+                        <li>Volatilité extrême des cours de l'énergie (Gaz et Électricité) impactant directement l'étape de cuisson (P06).</li>
+                        <li>Resserrement des seuils réglementaires liés aux redevances des agences de l'eau (effluents lourds).</li>
+                        <li>Risques sanitaires et épizooties pouvant paralyser instantanément les flux de collecte.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-		{# 3. PARAGRAPHE DE SYNTHÈSE CROISÉE (POUR IMPRESSIONNER) #}
-		<div class="bg-gradient-to-br from-zinc-50 to-zinc-100 border border-zinc-200 rounded-lg p-6 shadow-sm">
-			<h2 class="text-xl font-bold text-zinc-900 mb-3 flex items-center gap-2">
-				💡 Synthèse Stratégique & Perspectives Croisées
-			</h2>
+        {# 3. PARAGRAPHE DE SYNTHÈSE CROISÉE (POUR IMPRESSIONNER) #}
+        <div class="bg-gradient-to-br from-zinc-50 to-zinc-100 border border-zinc-200 rounded-lg p-6 shadow-sm">
+            <h2 class="text-xl font-bold text-zinc-900 mb-3 flex items-center gap-2">
+                💡 Synthèse Stratégique & Perspectives Croisées
+            </h2>
 
-			<div class="text-sm text-zinc-700 leading-relaxed space-y-4">
-				<p>
-					L'analyse croisée de nos filières de valorisation met en exergue une asymétrie opérationnelle structurelle entre la ligne <strong>Bovin</strong> et la ligne <strong>Volaille</strong>. Tandis que la filière Bovine bénéficie d'une excellente assise financière dès l'amont du flux grâce à des mécanismes de facturation à l'intervention protecteurs, elle subit en aval l'inertie de coûts de maintenance et d'amortissements techniques particulièrement lourds. À l'inverse, la filière Volaille démontre une agilité logistique supérieure avec des frais de collecte rationalisés, mais fait face à un goulot d'étranglement énergétique majeur au niveau de son outil industriel (P06), exacerbé par les protocoles stricts de traitement thermique des plumes et de bio-sécurité.
-				</p>
-				<p>
-					Cependant, la véritable opportunité réside dans l'effet de portefeuille et la complémentarité de nos sous-produits. La forte valorisation de la graisse de Volaille sur le segment de niche Petfood compense l'exposition aux cours plus instables des farines de Bovin. Pour maximiser notre excédent brut d'exploitation, l'entreprise ne doit pas arbitrer entre ces deux filières, mais mener une double stratégie :
-					<span class="font-semibold text-zinc-900">sécuriser les marges industrielles de la Volaille</span> en investissant dans la récupération thermique (via la vapeur et le biogaz issus du P07), tout en <span class="font-semibold text-zinc-900">optimisant le coût de détention logistique</span> de la flotte Bovine. C’est cette synergie opérationnelle, adossée à une politique active de subventions de décarbonation, qui pérennisera notre modèle de rentabilité en économie circulaire face à l'instabilité des marchés de l'énergie.
-				</p>
-			</div>
+            <div class="text-base leading-relaxed space-y-4">
+                <p>
+                    L'analyse croisée de nos filières de valorisation met en exergue une asymétrie opérationnelle structurelle entre la ligne <strong>Bovin</strong> et la ligne <strong>Volaille</strong>. Tandis que la filière Bovine bénéficie d'une excellente assise financière dès l'amont du flux grâce à des mécanismes de facturation à l'intervention protecteurs, elle subit en aval l'inertie de coûts de maintenance et d'amortissements techniques particulièrement lourds. À l'inverse, la filière Volaille démontre une agilité logistique supérieure avec des frais de collecte rationalisés, mais fait face à un goulot d'étranglement énergétique majeur au niveau de son outil industriel (P06), exacerbé par les protocoles stricts de traitement thermique des plumes et de bio-sécurité.
+                </p>
+                <p>
+                    Cependant, la véritable opportunité réside dans l'effet de portefeuille et la complémentarité de nos sous-produits. La forte valorisation de la graisse de Volaille sur le segment de niche Petfood compense l'exposition aux cours plus instables des farines de Bovin. Pour maximiser notre excédent brut d'exploitation, l'entreprise ne doit pas arbitrer entre ces deux filières, mais mener une double strategy :
+                    <span class="font-semibold text-zinc-900">sécuriser les marges industrielles de la Volaille</span> en investissant dans la récupération thermique (via la vapeur et le biogaz issus du P07), tout en <span class="font-semibold text-zinc-900">optimisant le coût de détention logistique</span> de la flotte Bovine. C’est cette synergie opérationnelle, adossée à une politique active de subventions de décarbonation, qui pérennisera notre modèle de rentabilité en économie circulaire face à l'instabilité des marchés de l'énergie.
+                </p>
+            </div>
 
-			<div class="mt-4 pt-4 border-t border-zinc-200 flex justify-end gap-3">
-				<button onclick="window.print()" class="text-xs bg-zinc-900 text-white font-medium px-4 py-2 rounded hover:bg-zinc-800 transition-colors">
-					🖨️ Exporter ou Imprimer le Rapport
-				</button>
-			</div>
-		</div>
+            <div class="mt-4 pt-4 border-t border-zinc-200 flex justify-end gap-3">
+                <button onclick="window.print()" class="text-base bg-zinc-900 text-white font-medium px-4 py-2 rounded hover:bg-zinc-800 transition-colors">
+                    🖨️ Exporter ou Imprimer le Rapport
+                </button>
+            </div>
+        </div>
 
-	</div>
+    </div>
 {% endblock %}

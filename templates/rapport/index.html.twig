@@ -11,18 +11,18 @@
     {% endfor %}
 
     <div class="mb-8">
-        <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Rapports de Gestion Analytique</h1>
-        <p class="text-xs text-zinc-500 mt-1">Cochez les matières brutes que vous souhaitez analyser et comparer au sein d'un même rapport.</p>
+        <h1 class="text-4xl font-bold tracking-tight text-zinc-900">Rapports de Gestion Analytique</h1>
+        <p class="text-lg text-zinc-500 mt-1">Cochez les matières brutes que vous souhaitez analyser et comparer au sein d'un même rapport.</p>
     </div>
 
     <form action="{{ path('app_rapport_generate') }}" method="POST" data-turbo="false">
         <div class="bg-white border border-zinc-200 rounded-md overflow-hidden">
             <div class="p-4 border-b border-zinc-100 bg-zinc-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400">Catalogue des matières disponibles</h2>
+                <h2 class="font-bold uppercase tracking-widest">Catalogue des matières disponibles</h2>
                 <div class="flex gap-2">
-                    <button type="button" onclick="toggleAll(true)" class="text-[11px] text-zinc-500 hover:text-zinc-900 font-medium">Tout cocher</button>
+                    <button type="button" onclick="toggleAll(true)" class="text-[15px] text-zinc-500 hover:text-zinc-900 font-medium">Tout cocher</button>
                     <span class="text-zinc-300 text-[11px]">•</span>
-                    <button type="button" onclick="toggleAll(false)" class="text-[11px] text-zinc-500 hover:text-zinc-900 font-medium">Tout décocher</button>
+                    <button type="button" onclick="toggleAll(false)" class="text-[15px] text-zinc-500 hover:text-zinc-900 font-medium">Tout décocher</button>
                 </div>
             </div>
 
@@ -32,8 +32,8 @@
                         <div class="flex items-center gap-3">
                             <input type="checkbox" name="selected_products[]" value="{{ product.id }}" class="product-checkbox w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900">
                             <div>
-                                <span class="font-mono font-bold text-zinc-900 uppercase tracking-tight text-sm">{{ product.name }}</span>
-                                <div class="text-zinc-400 text-[11px] mt-0.5">{{ product.processuses|length }} session(s) d'exploitation rattachée(s)</div>
+                                <span class="font-mono font-bold uppercase tracking-tight text-lg">{{ product.name }}</span>
+                                <div class="text-[13px] mt-0.5">{{ product.processuses|length }} session(s) d'exploitation rattachée(s)</div>
                             </div>
                         </div>
                     </li>

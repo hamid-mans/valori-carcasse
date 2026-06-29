@@ -5,8 +5,8 @@
 {% block body %}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-zinc-900 uppercase font-mono">{{ product.name }}</h1>
-            <p class="text-xs text-zinc-500 mt-1">Fiche d'exploitation technique et sessions de valorisation associées.</p>
+            <h1 class="text-4xl font-bold tracking-tight text-zinc-900 uppercase font-mono">{{ product.name }}</h1>
+            <p class="text-lg text-zinc-500 mt-1">Fiche d'exploitation technique et sessions de valorisation associées.</p>
         </div>
         <div class="flex items-center gap-2 w-full sm:w-auto">
             <a href="{{ path('app_home') }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 font-medium rounded-md text-xs transition-colors w-full sm:w-auto">
@@ -23,7 +23,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-1 h-fit">
-            <h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-100 pb-2">Spécifications Matière</h2>
+            <h2 class="font-bold uppercase tracking-widest mb-4 border-b border-zinc-100 pb-2">Spécifications Matière</h2>
             <table class="table w-full text-xs mb-6">
                 <tbody>
                 <tr>
@@ -40,7 +40,7 @@
 
         <div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-2">
             <div class="flex justify-between items-center mb-4 border-b border-zinc-100 pb-2">
-                <h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400">Sessions de valorisation rattachées</h2>
+                <h2 class="font-bold uppercase tracking-widest">Sessions de valorisation rattachées</h2>
                 <a href="{{ path('app_processus_new', {'product_id': product.id}) }}" class="inline-flex items-center justify-center gap-1 px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md text-xs transition-colors">
                     + Nouvelle Session
                 </a>
@@ -50,7 +50,7 @@
                 <div class="overflow-x-auto">
                     <table class="table w-full text-xs">
                         <thead>
-                        <tr class="text-zinc-500 uppercase tracking-wider text-[10px] font-semibold border-b border-zinc-100">
+                        <tr class="uppercase tracking-wider font-semibold border-b border-zinc-100">
                             <th class="pb-2 text-left">Nom du processus</th>
                             <th class="pb-2 text-center">Date de création</th>
                             <th class="pb-2 text-right">Solde Net</th>
@@ -60,7 +60,7 @@
                         <tbody class="divide-y divide-zinc-100">
                         {% for processus in product.processuses %}
                             <tr class="hover:bg-zinc-50/50 transition-colors">
-                                <td class="py-3 font-semibold text-zinc-900 text-sm tracking-tight">
+                                <td class="py-3 font-semibold tracking-tight">
                                     {{ processus.name }}
                                 </td>
                                 <td class="py-3 text-center text-zinc-500 font-mono">

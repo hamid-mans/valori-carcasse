@@ -5,8 +5,8 @@
 {% block body %}
 	<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
 		<div>
-			<h1 class="text-2xl font-bold tracking-tight text-zinc-900 uppercase font-mono">{{ processus.name }}</h1>
-			<p class="text-xs text-zinc-500 mt-1">
+			<h1 class="text-4xl font-bold tracking-tight text-zinc-900 uppercase font-mono">{{ processus.name }}</h1>
+			<p class="text-lg text-zinc-500 mt-1">
 				Produit associé : <span class="font-bold uppercase font-mono text-zinc-900 bg-zinc-100 border border-zinc-200 px-1.5 py-0.5 rounded text-[11px]">{{ processus.product.name }}</span>
 			</p>
 		</div>
@@ -26,15 +26,15 @@
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
 		<div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-1 h-fit">
-			<h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-100 pb-2">Résumé Financier</h2>
+			<h2 class="font-bold uppercase tracking-widest mb-4 border-b border-zinc-100 pb-2">Résumé Financier</h2>
 			<table class="table w-full text-xs">
 				<tbody class="divide-y divide-zinc-100">
 				<tr>
-					<td class="py-2.5 pl-0 font-medium text-zinc-500">Enregistré le :</td>
-					<td class="py-2.5 pr-0 text-right font-mono text-zinc-900">{{ processus.createdAt|date('d/m/Y à H:i') }}</td>
+					<td class="py-2.5 pl-0 font-medium">Enregistré le :</td>
+					<td class="py-2.5 pr-0 text-right font-mono">{{ processus.createdAt|date('d/m/Y à H:i') }}</td>
 				</tr>
 				<tr>
-					<td class="py-3 pl-0 font-semibold text-zinc-900">Solde Net Final :</td>
+					<td class="py-3 pl-0 font-semibold">Solde Net Final :</td>
 					<td class="py-3 pr-0 text-right font-mono font-bold text-sm tracking-tight {% if processus.soldeFinal >= 0 %}text-zinc-900{% else %}text-rose-600{% endif %}">
 						{{ processus.soldeFinal|number_format(2, ',', ' ') }} €
 					</td>
@@ -45,7 +45,7 @@
 
 		<div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-2">
 			<div class="flex justify-between items-center mb-4 border-b border-zinc-100 pb-2">
-				<h2 class="font-bold text-[10px] uppercase tracking-widest text-zinc-400">Flux financiers (Étapes de la session)</h2>
+				<h2 class="font-bold text-[10px] uppercase tracking-widest">Flux financiers (Étapes de la session)</h2>
 				<a href="{{ path('app_step_new', {'processus_id': processus.id}) }}" class="inline-flex items-center justify-center gap-1 px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md text-xs transition-colors">
 					+ Ajouter une étape
 				</a>
@@ -53,9 +53,9 @@
 
 			{% if processus.steps is not empty %}
 				<div class="overflow-x-auto">
-					<table class="table w-full text-xs">
+					<table class="table w-full">
 						<thead>
-						<tr class="border-b border-zinc-100 text-zinc-400 uppercase tracking-wider text-[10px] font-semibold">
+						<tr class="border-b border-zinc-100 uppercase tracking-wider font-semibold">
 							<th class="pb-2 text-left font-medium">Libellé</th>
 							<th class="pb-2 text-center font-medium">Nature</th>
 							<th class="pb-2 text-right font-medium">Montant</th>

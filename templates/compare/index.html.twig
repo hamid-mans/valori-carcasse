@@ -5,19 +5,6 @@
 {% block body %}
     <div class="flex h-screen bg-base-200 overflow-hidden">
 
-        <!-- SIDEBAR -->
-        <div class="w-64 bg-base-100 shadow-xl flex flex-col justify-between z-10">
-            <div>
-                <div class="p-6 font-bold text-xl tracking-wider text-primary border-b border-base-200 flex flex-col">
-                    <span>VALORI</span><span class="text-xs text-neutral-content font-normal mt-[-4px]">CARCASSE</span>
-                </div>
-                <ul class="menu p-4 w-full gap-2 text-base font-medium">
-                    <li><a href="{{ path('app_dashboard') }}" class="hover:bg-base-200">Tableau de bord</a></li>
-                    <li><a href="{{ path('app_compare') }}" class="active bg-primary text-primary-content">Analyse Comparative</a></li>
-                </ul>
-            </div>
-            <div class="p-4 text-xs text-center text-neutral-content border-t border-base-200">DEC 2026</div>
-        </div>
 
         <!-- CONTENU -->
         <div class="flex-1 flex flex-col h-full p-8 overflow-hidden">
