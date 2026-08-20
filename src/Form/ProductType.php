@@ -2,7 +2,9 @@
 
 namespace App\Form;
 
+use App\Entity\Category;
 use App\Entity\Product;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -17,8 +19,18 @@ class ProductType extends AbstractType
                 'label' => 'Nom du Produit animal',
                 'attr' => [
                     'class' => 'input input-bordered w-full text-base font-medium',
-                    'placeholder' => 'Ex: Bovins Catégorie 1 & 2, Porcins, Volailles...'
+                    'placeholder' => 'Ex: Bovins, Porcins, Volailles...'
                 ]
+            ])
+            ->add('category', EntityType::class, [
+                'class' => Category::class,
+                'choice_label' => 'name',
+                'label' => 'Catégorie associée',
+                'placeholder' => 'Sélectionnez une catégorie',
+                'attr' => [
+                    'class' => 'select select-bordered w-full text-base font-medium',
+                ],
+                'required' => true,
             ])
         ;
     }

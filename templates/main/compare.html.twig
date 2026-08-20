@@ -1,340 +1,284 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Comparatif Avancé - Valori-Carcasse{% endblock %}
+{% block title %}Comparateur Financier{% endblock %}
 
 {% block body %}
-	<div class="mb-6">
-		<h1 class="text-4xl font-bold tracking-tight text-zinc-900">Comparatif Analytique Avancé</h1>
-		<p class="text-lg mt-1">Filtrez par produit, session puis étape pour une confrontation de rentabilité ultra-ciblée.</p>
-	</div>
+    <div class="max-w-7xl mx-auto px-4 py-8">
 
-	<!-- BLOC FILTRES ÉPURÉ -->
-	<div class="bg-white border border-zinc-200 rounded-md p-5 mb-6">
-		<form method="get" action="{{ path('app_compare') }}" id="compareForm" class="space-y-4">
+        <!-- FORMULAIRE DE SÉLECTION MULTI-NIVEAUX (A vs B) -->
+        <form method="GET" action="{{ path('app_compare') }}" class="bg-white border border-zinc-200 rounded-md p-5 mb-8 shadow-sm">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-zinc-100">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-800">Paramètres de Confrontation</h2>
+                <a href="{{ path('app_compare') }}" class="text-xs font-mono text-zinc-500 hover:text-zinc-900 underline">Réinitialiser</a>
+            </div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div class="form-control w-full">
-					<label class="label py-1 font-semibold uppercase tracking-wider">1. Produit Référence (A)</label>
-					<select name="product_a" onchange="document.getElementById('session_a_val').value=''; this.form.submit()" class="select select-bordered select-sm rounded-md w-full text-xs font-medium focus:outline-zinc-400">
-						<option value="">-- Sélectionner un produit --</option>
-						{% for p in products %}
-							<option value="{{ p.id }}" {% if productA and productA.id == p.id %}selected{% endif %}>{{ p.name|upper }}</option>
-						{% endfor %}
-					</select>
-				</div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-				<div class="form-control w-full">
-					<label class="label py-1 font-semibold uppercase tracking-wider">1. Produit Cible (B)</label>
-					<select name="product_b" onchange="document.getElementById('session_b_val').value=''; this.form.submit()" class="select select-bordered select-sm rounded-md w-full text-xs font-medium focus:outline-zinc-400">
-						<option value="">-- Sélectionner un produit --</option>
-						{% for p in products %}
-							<option value="{{ p.id }}" {% if productB and productB.id == p.id %}selected{% endif %}>{{ p.name|upper }}</option>
-						{% endfor %}
-					</select>
-				</div>
-			</div>
+                <!-- FILTRES CÔTÉ A -->
+                <div class="bg-zinc-50 p-4 rounded border border-zinc-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="bg-zinc-200 text-zinc-800 font-mono tracking-wider uppercase px-2 py-0.5 text-[10px] font-bold rounded-sm">Côté A</span>
+                    </div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div class="form-control w-full {% if not productA %}opacity-40 pointer-events-none{% endif %}">
-					<label class="label py-1 font-semibold uppercase tracking-wider">2. Session associée (A)</label>
-					<select name="session_a" id="session_a_val" onchange="this.form.submit()" class="select select-bordered select-sm rounded-md w-full text-xs font-medium" {% if not productA %}disabled{% endif %}>
-						<option value="">-- Choisir une session --</option>
-						{% for p in processusListA %}
-							<option value="{{ p.id }}" {% if sessionA and sessionA.id == p.id %}selected{% endif %}>{{ p.name }}</option>
-						{% endfor %}
-					</select>
-				</div>
+                    <!-- Catégorie A -->
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase text-zinc-500 mb-1">Catégorie</label>
+                        <select name="category_a" onchange="this.form.submit()" class="w-full text-xs font-mono bg-white border border-zinc-300 rounded p-2 focus:ring-1 focus:ring-zinc-900">
+                            <option value="">-- Choisir une catégorie --</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if categoryA and categoryA.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-				<div class="form-control w-full {% if not productB %}opacity-40 pointer-events-none{% endif %}">
-					<label class="label py-1 font-semibold uppercase tracking-wider">2. Session associée (B)</label>
-					<select name="session_b" id="session_b_val" onchange="this.form.submit()" class="select select-bordered select-sm rounded-md w-full text-xs font-medium" {% if not productB %}disabled{% endif %}>
-						<option value="">-- Choisir une session --</option>
-						{% for p in processusListB %}
-							<option value="{{ p.id }}" {% if sessionB and sessionB.id == p.id %}selected{% endif %}>{{ p.name }}</option>
-						{% endfor %}
-					</select>
-				</div>
-			</div>
+                    <!-- Produit A -->
+                    {% if categoryA and productsA|length > 0 %}
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase text-zinc-500 mb-1">Gamme / Produit</label>
+                            <select name="product_a" onchange="this.form.submit()" class="w-full text-xs font-mono bg-white border border-zinc-300 rounded p-2">
+                                <option value="">-- Tous les produits de {{ categoryA.name }} --</option>
+                                {% for prod in productsA %}
+                                    <option value="{{ prod.id }}" {% if productA and productA.id == prod.id %}selected{% endif %}>{{ prod.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-zinc-100 pt-3">
-				<div class="form-control w-full {% if not sessionA %}opacity-40 pointer-events-none{% endif %}">
-					<label class="label py-1 font-semibold uppercase tracking-wider">3. Zoom Étape Optionnel (A)</label>
-					<select name="step_a" onchange="this.form.submit()" class="select select-bordered select-sm rounded-md w-full text-xs font-normal" {% if not sessionA %}disabled{% endif %}>
-						<option value="">-- Toute la session --</option>
-						{% for s in stepsListA %}
-							<option value="{{ s.id }}" {% if stepA and stepA.id == s.id %}selected{% endif %}>{{ s.name }} ({% if s.isGain %}VALO{% else %}CHARGE{% endif %})</option>
-						{% endfor %}
-					</select>
-				</div>
+                    <!-- Processus / Session A -->
+                    {% if productA and sessionsA|length > 0 %}
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase text-zinc-500 mb-1">Session / Processus</label>
+                            <select name="session_a" onchange="this.form.submit()" class="w-full text-xs font-mono bg-white border border-zinc-300 rounded p-2">
+                                <option value="">-- Toutes les sessions de {{ productA.name }} --</option>
+                                {% for sess in sessionsA %}
+                                    <option value="{{ sess.id }}" {% if sessionA and sessionA.id == sess.id %}selected{% endif %}>{{ sess.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
 
-				<div class="form-control w-full {% if not sessionB %}opacity-40 pointer-events-none{% endif %}">
-					<label class="label py-1 font-semibold uppercase tracking-wider">3. Zoom Étape Optionnel (B)</label>
-					<select name="step_b" onchange="this.form.submit()" class="select select-bordered select-sm rounded-md w-full text-xs font-normal" {% if not sessionB %}disabled{% endif %}>
-						<option value="">-- Toute la session --</option>
-						{% for s in stepsListB %}
-							<option value="{{ s.id }}" {% if stepB and stepB.id == s.id %}selected{% endif %}>{{ s.name }} ({% if s.isGain %}VALO{% else %}CHARGE{% endif %})</option>
-						{% endfor %}
-					</select>
-				</div>
-			</div>
+                    <!-- Étape A -->
+                    {% if sessionA and stepsA|length > 0 %}
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase text-zinc-500 mb-1">Étape spécifique</label>
+                            <select name="step_a" onchange="this.form.submit()" class="w-full text-xs font-mono bg-white border border-zinc-300 rounded p-2">
+                                <option value="">-- Toutes les étapes de {{ sessionA.name }} --</option>
+                                {% for st in stepsA %}
+                                    <option value="{{ st.id }}" {% if stepA and stepA.id == st.id %}selected{% endif %}>{{ st.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+                </div>
 
-			<div class="flex justify-end border-t border-zinc-100 pt-3">
-				<a href="{{ path('app_compare') }}" class="text-[11px] text-zinc-400 hover:text-zinc-900 underline underline-offset-4 transition-colors">
-					Réinitialiser les filtres
-				</a>
-			</div>
-		</form>
-	</div>
+                <!-- FILTRES CÔTÉ B -->
+                <div class="bg-zinc-50 p-4 rounded border border-zinc-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="bg-zinc-900 text-white font-mono tracking-wider uppercase px-2 py-0.5 text-[10px] font-bold rounded-sm">Côté B</span>
+                    </div>
 
-	{% if sessionA and sessionB %}
-		<!-- CONTENEURS DE CONFRONTATION -->
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                    <!-- Catégorie B -->
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase text-zinc-500 mb-1">Catégorie</label>
+                        <select name="category_b" onchange="this.form.submit()" class="w-full text-xs font-mono bg-white border border-zinc-300 rounded p-2 focus:ring-1 focus:ring-zinc-900">
+                            <option value="">-- Choisir une catégorie --</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if categoryB and categoryB.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-			<!-- SESSION A -->
-			<div class="bg-white border border-zinc-200 rounded-md p-5">
-				<div class="flex justify-between items-start border-b border-zinc-100 pb-3 mb-4">
-					<div>
-						<span class="inline-block bg-zinc-100 font-mono tracking-wider uppercase px-2 py-0.5 rounded-sm mb-1 border border-zinc-200">{{ sessionA.product.name }}</span>
-						<h3 class="font-bold text-lg tracking-tight">{{ sessionA.name }}</h3>
-					</div>
-					<div class="text-right">
-						<span class="uppercase font-semibold tracking-wider">{% if stepA %}Poste ciblé{% else %}Solde Session{% endif %}</span>
-						<div class="text-lg font-mono font-bold tracking-tight {% if stepA %}{% if stepA.isGain %}text-emerald-600{% else %}text-rose-600{% endif %}{% else %}{% if sessionA.soldeFinal >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}{% endif %}">
-							{% if stepA %}
-								{% if stepA.isGain %}+{% else %}-{% endif %} {{ stepA.amout|number_format(2, ',', ' ') }} €
-							{% else %}
-								{{ sessionA.soldeFinal|number_format(2, ',', ' ') }} €
-							{% endif %}
-						</div>
-					</div>
-				</div>
+                    <!-- Produit B -->
+                    {% if categoryB and productsB|length > 0 %}
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase text-zinc-500 mb-1">Gamme / Produit</label>
+                            <select name="product_b" onchange="this.form.submit()" class="w-full text-xs font-mono bg-white border border-zinc-300 rounded p-2">
+                                <option value="">-- Tous les produits de {{ categoryB.name }} --</option>
+                                {% for prod in productsB %}
+                                    <option value="{{ prod.id }}" {% if productB and productB.id == prod.id %}selected{% endif %}>{{ prod.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
 
-				<h4 class="font-semibold uppercase tracking-widest mb-3">{% if stepA %}Étape isolée{% else %}Détail des flux{% endif %}</h4>
-				<div class="space-y-1 max-h-60 overflow-y-auto pr-1">
-					{% for step in sessionA.steps %}
-						<div class="flex justify-between items-center px-2.5 py-2 border rounded-sm transition-colors {% if stepA and stepA.id != step.id %}opacity-30 bg-transparent border-dashed border-zinc-200{% else %}bg-zinc-50 border-zinc-200{% endif %}">
-							<span class="font-medium truncate max-w-[220px]">{{ step.name }}</span>
-							<span class="font-mono font-semibold {% if step.isGain %}text-emerald-600{% else %}text-rose-600{% endif %}">
-                            {% if step.isGain %}+{% else %}-{% endif %} {{ step.amout|number_format(2, ',', ' ') }} €
-                        </span>
-						</div>
-					{% else %}
-						<p class="text-md italic">Aucune étape financière.</p>
-					{% endfor %}
-				</div>
-			</div>
+                    <!-- Processus / Session B -->
+                    {% if productB and sessionsB|length > 0 %}
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase text-zinc-500 mb-1">Session / Processus</label>
+                            <select name="session_b" onchange="this.form.submit()" class="w-full text-xs font-mono bg-white border border-zinc-300 rounded p-2">
+                                <option value="">-- Toutes les sessions de {{ productB.name }} --</option>
+                                {% for sess in sessionsB %}
+                                    <option value="{{ sess.id }}" {% if sessionB and sessionB.id == sess.id %}selected{% endif %}>{{ sess.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
 
-			<!-- SESSION B -->
-			<div class="bg-white border border-zinc-200 rounded-md p-5">
-				<div class="flex justify-between items-start border-b border-zinc-100 pb-3 mb-4">
-					<div>
-						<span class="inline-block bg-zinc-900 text-white text-[9px] font-mono tracking-wider uppercase px-2 py-0.5 rounded-sm mb-1">{{ sessionB.product.name }}</span>
-						<h3 class="font-bold text-lg text-zinc-900 tracking-tight">{{ sessionB.name }}</h3>
-					</div>
-					<div class="text-right">
-						<span class="uppercase font-semibold tracking-wider">{% if stepB %}Poste ciblé{% else %}Solde Session{% endif %}</span>
-						<div class="text-lg font-mono font-bold tracking-tight {% if stepB %}{% if stepB.isGain %}text-emerald-600{% else %}text-rose-600{% endif %}{% else %}{% if sessionB.soldeFinal >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}{% endif %}">
-							{% if stepB %}
-								{% if stepB.isGain %}+{% else %}-{% endif %} {{ stepB.amout|number_format(2, ',', ' ') }} €
-							{% else %}
-								{{ sessionB.soldeFinal|number_format(2, ',', ' ') }} €
-							{% endif %}
-						</div>
-					</div>
-				</div>
+                    <!-- Étape B -->
+                    {% if sessionB and stepsB|length > 0 %}
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase text-zinc-500 mb-1">Étape spécifique</label>
+                            <select name="step_b" onchange="this.form.submit()" class="w-full text-xs font-mono bg-white border border-zinc-300 rounded p-2">
+                                <option value="">-- Toutes les étapes de {{ sessionB.name }} --</option>
+                                {% for st in stepsB %}
+                                    <option value="{{ st.id }}" {% if stepB and stepB.id == st.id %}selected{% endif %}>{{ st.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+                </div>
 
-				<h4 class="font-semibold uppercase tracking-widest mb-3">{% if stepB %}Étape isolée{% else %}Détail des flux{% endif %}</h4>
-				<div class="space-y-1 max-h-60 overflow-y-auto pr-1">
-					{% for step in sessionB.steps %}
-						<div class="flex justify-between items-center text-xs px-2.5 py-2 border rounded-sm transition-colors {% if stepB and stepB.id != step.id %}opacity-30 bg-transparent border-dashed border-zinc-200{% else %}bg-zinc-50 border-zinc-200{% endif %}">
-							<span class="font-medium truncate max-w-[220px]">{{ step.name }}</span>
-							<span class="font-mono font-semibold {% if step.isGain %}text-emerald-600{% else %}text-rose-600{% endif %}">
-                            {% if step.isGain %}+{% else %}-{% endif %} {{ step.amout|number_format(2, ',', ' ') }} €
-                        </span>
-						</div>
-					{% else %}
-						<p class="text-xs italic text-zinc-400">Aucune étape financière.</p>
-					{% endfor %}
-				</div>
-			</div>
-		</div>
+            </div>
+        </form>
 
-		<!-- AUDIT METIER INTERNE -->
-		<div class="bg-white border border-zinc-200 rounded-md p-5 mb-6">
-			<div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-zinc-100 pb-2 mb-4 gap-2">
-				<h3 class="font-bold uppercase tracking-wider">Analyse de l'Écart & Audit Métier (B vs A)</h3>
-				<span class="font-mono border border-zinc-200 bg-zinc-50 px-2 py-0.5 rounded uppercase tracking-wider">Moteur Décisionnel Actif</span>
-			</div>
+        <!-- AFFICHAGE DES RÉSULTATS DE COMPARAISON -->
+        {% if statsA and statsB %}
+            <!-- Badge de précision -->
+            <div class="flex justify-between items-center bg-zinc-100 border border-zinc-200 px-4 py-2 rounded-md mb-4 text-xs font-mono">
+                <span class="text-zinc-500 uppercase">Niveau d'analyse actuel :</span>
+                <span class="font-bold uppercase bg-zinc-900 text-white px-2 py-0.5 rounded">
+                 {% if statsA.level == 'category' %}Macro-Catégorie{% elseif statsA.level == 'product' %}Gamme Produit{% elseif statsA.level == 'session' %}Session Complète{% else %}Étape Isolée{% endif %}
+            </span>
+            </div>
 
-			<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-				{% if stepA and stepB %}
-					{% set valA = stepA.isGain ? stepA.amout : -stepA.amout %}
-					{% set valB = stepB.isGain ? stepB.amout : -stepB.amout %}
-					{% set diffPoste = valB - valA %}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <!-- BLOC A -->
+                <div class="bg-white border border-zinc-200 rounded-md p-5">
+                    <div class="flex justify-between items-start border-b border-zinc-100 pb-3 mb-4">
+                        <div>
+                            <span class="bg-zinc-200 text-zinc-700 font-mono tracking-wider uppercase px-2 py-0.5 text-[10px] rounded-sm">Côté A</span>
+                            <h3 class="font-bold text-lg tracking-tight mt-1">{{ statsA.label|upper }}</h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="uppercase font-semibold tracking-wider text-xs text-zinc-500">Solde Cumulé</span>
+                            <div class="text-lg font-mono font-bold tracking-tight {% if statsA.solde >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                                {{ statsA.solde|number_format(2, ',', ' ') }} €
+                            </div>
+                        </div>
+                    </div>
 
-					<div class="p-5 bg-zinc-50 border border-zinc-200 rounded-md flex flex-col justify-center items-center text-center">
-						<div class="font-semibold uppercase tracking-wider">Différence nette sur les postes</div>
-						<div class="text-2xl font-mono font-bold mt-2 tracking-tight {% if diffPoste >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
-							{% if diffPoste > 0 %}+{% endif %}{{ diffPoste|number_format(2, ',', ' ') }} €
-						</div>
-						<p class="mt-2 font-medium bg-zinc-900 text-white px-2 py-0.5 rounded-sm uppercase tracking-widest">Filtre Chirurgical</p>
-					</div>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                        <div class="bg-emerald-50 border border-emerald-100 p-2.5 rounded">
+                            <span class="text-emerald-800 text-[10px] block uppercase font-sans">Valorisations</span>
+                            <span class="font-bold text-emerald-600">+ {{ statsA.gains|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                        <div class="bg-rose-50 border border-rose-100 p-2.5 rounded">
+                            <span class="text-rose-800 text-[10px] block uppercase font-sans">Charges & Coûts</span>
+                            <span class="font-bold text-rose-600">- {{ statsA.costs|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                    </div>
+                </div>
 
-					<div class="lg:col-span-2 p-5 bg-zinc-50 border border-zinc-200 rounded-md flex flex-col justify-between">
-						<div>
-							<div class="flex items-center gap-2 text-zinc-900 font-bold text-[11px] uppercase mb-2 tracking-wide">
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 21l8.982-11.395A.905.905 0 0 0 17.3 8.15l-6.83 1.127L11.31 3 2.31 14.395a.905.905 0 0 0 .717 1.5l7.305-1.127Z" />
-								</svg>
-								Interprétation automatique des flux
-							</div>
-							<p class="text-xs text-zinc-600 leading-relaxed">
-								Vous comparez un poste de type
-								<span class="font-semibold text-zinc-900">{% if stepB.isGain %}VALORISATION ({{ stepB.name }}){% else %}CHARGE ({{ stepB.name }}){% endif %}</span>
-								face à un poste de référence de type
-								<span class="font-semibold text-zinc-900">{% if stepA.isGain %}VALORISATION ({{ stepA.name }}){% else %}CHARGE ({{ stepA.name }}){% endif %}</span>.
-							</p>
+                <!-- BLOC B -->
+                <div class="bg-white border border-zinc-200 rounded-md p-5">
+                    <div class="flex justify-between items-start border-b border-zinc-100 pb-3 mb-4">
+                        <div>
+                            <span class="bg-zinc-900 text-white font-mono tracking-wider uppercase px-2 py-0.5 text-[10px] rounded-sm">Côté B</span>
+                            <h3 class="font-bold text-lg tracking-tight mt-1">{{ statsB.label|upper }}</h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="uppercase font-semibold tracking-wider text-xs text-zinc-500">Solde Cumulé</span>
+                            <div class="text-lg font-mono font-bold tracking-tight {% if statsB.solde >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                                {{ statsB.solde|number_format(2, ',', ' ') }} €
+                            </div>
+                        </div>
+                    </div>
 
-							<p class="text-xs mt-3 text-zinc-700 bg-white p-3 border border-zinc-200 rounded-sm">
-								{% if stepB.isGain and not stepA.isGain %}
-									<span class="text-emerald-600 font-bold">💡 Note d'audit :</span> Cette confrontation oppose une création de valeur à un coût d'exploitation. L'écart positif de <span class="font-mono font-semibold">{{ diffPoste|number_format(2, ',', ' ') }} €</span> met en évidence l'effet de levier de la revente (matières valorisées) sur l'absorption des frais fixes logistiques initiaux.
-								{% elseif not stepB.isGain and stepA.isGain %}
-									<span class="text-rose-600 font-bold">⚠️ Note d'audit :</span> Attention, la cible analysée (B) est un poste de coût face à un poste de revenu (A). Cet écart négatif dégrade la marge brute de la session et indique que les charges de structure ou opérationnelles sélectionnées pèsent lourdement face au potentiel de recyclage.
-								{% elseif stepB.isGain and stepA.isGain %}
-									<span class="text-zinc-900 font-bold">📈 Note d'audit :</span> Analyse comparative de performance commerciale. {% if diffPoste > 0 %}Le processus B surpasse la référence de <span class="font-mono font-semibold">{{ diffPoste|number_format(2, ',', ' ') }} €</span>, validant de meilleures conditions de rachat ou une meilleure qualité de tri des coproduits (PAT/Biomasse).{% else %}Le processus B affiche un manque à gagner de <span class="font-mono font-semibold">{{ (diffPoste)|abs|number_format(2, ',', ' ') }} €</span> par rapport à la référence, signalant une sous-optimisation des filières de revente.{% endif %}
-								{% else %}
-									<span class="text-zinc-500 font-bold">📉 Note d'audit :</span> Analyse comparative des charges. {% if diffPoste > 0 %}Le poste B subit une dérive des coûts de <span class="font-mono font-semibold">{{ diffPoste|number_format(2, ',', ' ') }} €</span> (ex: hausse transport/énergie). Une réévaluation des contrats prestataires est recommandée.{% else %}Le poste B montre une optimisation budgétaire de <span class="font-mono font-semibold">{{ (diffPoste)|abs|number_format(2, ',', ' ') }} €</span>, prouvant une meilleure maîtrise des flux logistiques ou sanitaires.{% endif %}
-								{% endif %}
-							</p>
-						</div>
-						<div class="text-[9px] text-zinc-400 mt-3 pt-2 border-t border-zinc-100 flex justify-between font-mono">
-							<span>Matrice : {{ stepB.processus.product.name|upper }} vs {{ stepA.processus.product.name|upper }}</span>
-							<span>Recommandation systémique</span>
-						</div>
-					</div>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                        <div class="bg-emerald-50 border border-emerald-100 p-2.5 rounded">
+                            <span class="text-emerald-800 text-[10px] block uppercase font-sans">Valorisations</span>
+                            <span class="font-bold text-emerald-600">+ {{ statsB.gains|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                        <div class="bg-rose-50 border border-rose-100 p-2.5 rounded">
+                            <span class="text-rose-800 text-[10px] block uppercase font-sans">Charges & Coûts</span>
+                            <span class="font-bold text-rose-600">- {{ statsB.costs|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-				{% else %}
-					{% set ecartGains = sessionB.gainsTotal - sessionA.gainsTotal %}
-					{% set ecartCosts = sessionB.costsTotal - sessionA.costsTotal %}
-					{% set ecartSolde = sessionB.soldeFinal - sessionA.soldeFinal %}
+            <!-- AUDIT ET ÉCART DYNAMIQUE -->
+            {% set ecartSolde = statsB.solde - statsA.solde %}
+            {% set ecartGains = statsB.gains - statsA.gains %}
+            {% set ecartCosts = statsB.costs - statsA.costs %}
 
-					<div class="p-4 bg-zinc-50 border border-zinc-200 rounded-md">
-						<div class="font-semibold uppercase tracking-wider">Écart sur Valorisations</div>
-						<div class="text-lg font-mono font-bold mt-1 {% if ecartGains >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
-							{% if ecartGains > 0 %}+{% endif %}{{ ecartGains|number_format(2, ',', ' ') }} €
-						</div>
-					</div>
+            <div class="bg-white border border-zinc-200 rounded-md p-5 mb-6">
+                <h3 class="font-bold uppercase tracking-wider text-sm border-b border-zinc-100 pb-2 mb-4">Analyse Différentielle (B vs A)</h3>
 
-					<div class="p-4 bg-zinc-50 border border-zinc-200 rounded-md">
-						<div class="font-semibold uppercase tracking-wider">Écart sur Coûts / Logistique</div>
-						<div class="text-lg font-mono font-bold mt-1 {% if ecartCosts <= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
-							{% if ecartCosts > 0 %}+{% endif %}{{ ecartCosts|number_format(2, ',', ' ') }} €
-						</div>
-					</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-zinc-50 border border-zinc-200 rounded-md">
+                        <div class="font-semibold uppercase tracking-wider text-xs text-zinc-600">Différence Valorisations</div>
+                        <div class="text-lg font-mono font-bold mt-1 {% if ecartGains >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {% if ecartGains > 0 %}+{% endif %}{{ ecartGains|number_format(2, ',', ' ') }} €
+                        </div>
+                    </div>
 
-					<div class="p-4 bg-zinc-50 border border-zinc-200 rounded-md">
-						<div class="font-semibold uppercase tracking-wider">Performance Nette Globale</div>
-						<div class="text-lg font-mono font-bold mt-1 {% if ecartSolde >= 0 %}text-zinc-900{% else %}text-rose-600{% endif %}">
-							{% if ecartSolde > 0 %}+{% endif %}{{ ecartSolde|number_format(2, ',', ' ') }} €
-						</div>
-					</div>
+                    <div class="p-4 bg-zinc-50 border border-zinc-200 rounded-md">
+                        <div class="font-semibold uppercase tracking-wider text-xs text-zinc-600">Différence Charges</div>
+                        <div class="text-lg font-mono font-bold mt-1 {% if ecartCosts <= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {% if ecartCosts > 0 %}+{% endif %}{{ ecartCosts|number_format(2, ',', ' ') }} €
+                        </div>
+                    </div>
 
-					<div class="text-white md:col-span-3 p-4 bg-zinc-900 rounded-md text-md font-normal leading-relaxed font-sans">
-						<span class="font-bold tracking-wider uppercase text-xl block mb-1">Rapport de Synthèse Globale</span>
-						La session <span class="font-semibold">{{ sessionB.name }}</span> dégage une rentabilité brute
-						{% if ecartSolde > 0 %}
-							<span class="text-emerald-400 font-semibold">supérieure de {{ ecartSolde|number_format(2, ',', ' ') }} €</span>
-							par rapport à la session témoin. Cette dynamique s'explique principalement par
-							{% if ecartGains > ecartCosts %}une meilleure performance sur la revente et la transformation des matières.{% else %}une réduction des coûts logistiques et des charges d'équarrissage.{% endif %}
-						{% else %}
-							<span class="text-rose-400 font-semibold">inférieure de {{ (ecartSolde)|abs|number_format(2, ',', ' ') }} €</span>
-							par certitude comptable. La structure souffre d'un
-							{% if ecartGains < 0 and ecartCosts > 0 %}cumul défavorable : baisse des prix de valorisation du marché de la viande et hausse parallèle des coûts de traitement sanitaire.{% elseif ecartGains < 0 %}manque à gagner sur les filières de valorisation.{% else %}surcoût critique lié aux postes de transport ou d'exploitation de la carcasse.{% endif %}
-						{% endif %}
-					</div>
-				{% endif %}
-			</div>
-		</div>
+                    <div class="p-4 bg-zinc-50 border border-zinc-200 rounded-md">
+                        <div class="font-semibold uppercase tracking-wider text-xs text-zinc-600">Écart Net Global</div>
+                        <div class="text-lg font-mono font-bold mt-1 {% if ecartSolde >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {% if ecartSolde > 0 %}+{% endif %}{{ ecartSolde|number_format(2, ',', ' ') }} €
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-		<!-- GRAPHIQUE INTEGRÉ -->
-		<div class="bg-white border border-zinc-200 rounded-md p-5">
-			<h3 class="font-bold uppercase tracking-widest mb-4 border-b border-zinc-100 pb-2">Visualisation Graphique du comparatif</h3>
-			<div class="w-full h-64">
-				<canvas id="compareAdvancedChart"></canvas>
-			</div>
-		</div>
+            <!-- GRAPHIQUE COMPATIBLE -->
+            <div class="bg-white border border-zinc-200 rounded-md p-5">
+                <h3 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-zinc-100 pb-2 text-zinc-700">Visualisation Synthétique</h3>
+                <div class="w-full h-64">
+                    <canvas id="compareAdvancedChart"></canvas>
+                </div>
+            </div>
 
-		<script>
-            document.addEventListener("turbo:load", function() {
-                const canvasEl = document.getElementById('compareAdvancedChart');
-                if (!canvasEl) return;
-                const ctx = canvasEl.getContext('2d');
+            <script>
+                document.addEventListener("turbo:load", function() {
+                    const canvasEl = document.getElementById('compareAdvancedChart');
+                    if (!canvasEl) return;
+                    const ctx = canvasEl.getContext('2d');
 
-                let labels = [];
-                let dataA = [];
-                let dataB = [];
-
-				{% if stepA and stepB %}
-                labels = ["{{ stepA.name|e('js') }} (A)", "{{ stepB.name|e('js') }} (B)"];
-                dataA = [{% if stepA.isGain %}{{ stepA.amout }}{% else %}-{{ stepA.amout }}{% endif %}, 0];
-                dataB = [0, {% if stepB.isGain %}{{ stepB.amout }}{% else %}-{{ stepB.amout }}{% endif %}];
-				{% else %}
-                let maxSteps = Math.max({{ sessionA.steps|length }}, {{ sessionB.steps|length }});
-                for (let i = 1; i <= maxSteps; i++) {
-                    labels.push('Étape ' + i);
-                }
-				{% for step in sessionA.steps %}
-                dataA.push({% if step.isGain %}{{ step.amout }}{% else %}-{{ step.amout }}{% endif %});
-				{% endfor %}
-				{% for step in sessionB.steps %}
-                dataB.push({% if step.isGain %}{{ step.amout }}{% else %}-{{ step.amout }}{% endif %});
-				{% endfor %}
-				{% endif %}
-
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: "{{ sessionA.name|e('js') }}",
-                                data: dataA,
-                                backgroundColor: '#dc2626', /* Rouge mat chirurgical */
-                                borderRadius: 0
-                            },
-                            {
-                                label: "{{ sessionB.name|e('js') }}",
-                                data: dataB,
-                                backgroundColor: '#18181b', /* Ardoise foncé Shadcn */
-                                borderRadius: 0
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: false,
-                        scales: {
-                            y: { grid: { color: '#f4f4f5' }, ticks: { callback: function(value) { return value + ' €'; }, font: { size: 10 } } },
-                            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Gains / Valorisations', 'Coûts / Charges', 'Solde Net'],
+                            datasets: [
+                                {
+                                    label: "{{ statsA.label|e('js') }}",
+                                    data: [{{ statsA.gains }}, -{{ statsA.costs }}, {{ statsA.solde }}],
+                                    backgroundColor: '#dc2626'
+                                },
+                                {
+                                    label: "{{ statsB.label|e('js') }}",
+                                    data: [{{ statsB.gains }}, -{{ statsB.costs }}, {{ statsB.solde }}],
+                                    backgroundColor: '#18181b'
+                                }
+                            ]
                         },
-                        plugins: {
-                            legend: { labels: { boxWidth: 12, font: { size: 11, weight: '500' } } }
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: false,
+                            scales: {
+                                y: { grid: { color: '#f4f4f5' }, ticks: { callback: function(value) { return value + ' €'; } } },
+                                x: { grid: { display: false } }
+                            }
                         }
-                    }
+                    });
                 });
-            });
-		</script>
+            </script>
 
-	{% else %}
-		<!-- ZONE VIDE CLINIQUE -->
-		<div class="flex flex-col items-center justify-center text-center py-16 bg-white rounded-md border border-zinc-200 border-dashed">
-			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-10 h-10 text-zinc-300 mb-2">
-				<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
-				<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
-			</svg>
-			<p class="text-xs font-semibold text-zinc-700">En attente de traitement</p>
-			<p class="text-[11px] text-zinc-400 mt-1 max-w-xs">Sélectionnez les matières et les sessions d'équarrissage pour générer le calcul différentiel.</p>
-		</div>
-	{% endif %}
+        {% else %}
+            <!-- EN ATTENTE DE SÉLECTION COMPLÈTE -->
+            <div class="flex flex-col items-center justify-center text-center py-16 bg-white rounded-md border border-zinc-200 border-dashed">
+                <p class="text-xs font-semibold text-zinc-700">Sélectionnez au moins une catégorie du côté A et du côté B pour afficher la confrontation.</p>
+            </div>
+        {% endif %}
+
+    </div>
 {% endblock %}

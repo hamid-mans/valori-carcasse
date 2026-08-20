@@ -5,22 +5,38 @@
 {% block body %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <div class="bg-white p-4 rounded-md border border-zinc-200 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <form method="get" action="{{ path('app_dashboard') }}" class="flex items-center gap-3 w-full sm:w-auto">
-            <label class="font-semibold text-xs uppercase tracking-wider whitespace-nowrap">Analyser le produit :</label>
-            <select name="product_id" onchange="this.form.submit()" class="select select-bordered select-sm rounded-md w-64 text-xs font-semibold text-zinc-900 focus:outline-zinc-400">
-                {% for p in products %}
-                    <option value="{{ p.id }}" {% if selectedProduct and selectedProduct.id == p.id %}selected{% endif %}>
-                        {{ p.name|upper }}
-                    </option>
-                {% endfor %}
-            </select>
+    <!-- Barre de filtres : Catégorie + Produit -->
+    <div class="bg-white p-4 rounded-md border border-zinc-200 mb-6 flex flex-col lg:flex-row justify-between items-center gap-4">
+        <form method="get" action="{{ path('app_dashboard') }}" id="filterForm" class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+
+            {# Filtre 1 : Catégorie #}
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <label class="font-semibold text-xs uppercase tracking-wider whitespace-nowrap text-zinc-600">Catégorie :</label>
+                <select name="category_id" onchange="document.getElementById('product_select').value=''; this.form.submit();" class="select select-bordered select-sm rounded-md w-full sm:w-52 text-xs font-semibold text-zinc-900 focus:outline-zinc-400">
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selectedCategory and selectedCategory.id == cat.id %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Filtre 2 : Produit #}
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <label class="font-semibold text-xs uppercase tracking-wider whitespace-nowrap text-zinc-600">Produit :</label>
+                <select name="product_id" id="product_select" onchange="this.form.submit()" class="select select-bordered select-sm rounded-md w-full sm:w-60 text-xs font-semibold text-zinc-900 focus:outline-zinc-400">
+                    <option value="">-- Tous les produits de la catégorie --</option>
+                    {% for p in products %}
+                        <option value="{{ p.id }}" {% if selectedProduct and selectedProduct.id == p.id %}selected{% endif %}>
+                            {{ p.name|upper }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
         </form>
 
-        <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-            <div class="text-[10px] font-mono uppercase tracking-widest hidden md:block">Indicateurs de performance actifs</div>
-
-            {% if selectedProduct %}
+        <div class="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end">
+            {% if processuses is not empty %}
                 <button onclick="exportDashboardToPDF()" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 rounded-md text-xs font-medium transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -31,44 +47,80 @@
         </div>
     </div>
 
-    {% if selectedProduct %}
-        <div id="pdf-content" class="bg-transparent">
+    <!-- Cartes KPI Synthese -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white p-4 border border-zinc-200 rounded-md">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">Total Produit / Gains</span>
+            <span class="text-xl font-bold font-mono text-emerald-600 mt-1 block">+ {{ stats.globalGains|number_format(2, ',', ' ') }} €</span>
+        </div>
+        <div class="bg-white p-4 border border-zinc-200 rounded-md">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">Total Charges / Coûts</span>
+            <span class="text-xl font-bold font-mono text-rose-600 mt-1 block">- {{ stats.globalCosts|number_format(2, ',', ' ') }} €</span>
+        </div>
+        <div class="bg-white p-4 border border-zinc-200 rounded-md">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">Résultat Net</span>
+            <span class="text-xl font-bold font-mono {% if stats.globalSolde >= 0 %}text-zinc-900{% else %}text-rose-600{% endif %} mt-1 block">
+                {{ stats.globalSolde|number_format(2, ',', ' ') }} €
+            </span>
+        </div>
+    </div>
 
+    {% if processuses is not empty %}
+        <div id="pdf-content" class="bg-transparent">
+            <!-- En-tête -->
             <div class="mb-5">
-                <h2 class="text-2xl font-bold tracking-tight text-zinc-900 uppercase">
-                    Graphiques d'Évolution : <span class="text-2xl">{{ selectedProduct.name }}</span>
+                <h2 class="text-xl font-bold tracking-tight text-zinc-900 uppercase">
+                    Analyse :
+                    <span class="text-zinc-700">
+                        {% if selectedProduct %}
+                            {{ selectedProduct.name }} <span class="text-xs text-zinc-500 font-normal">({{ selectedCategory.name }})</span>
+                        {% elseif selectedCategory %}
+                            {{ selectedCategory.name }} <span class="text-xs text-zinc-500 font-normal">(Vue d'ensemble)</span>
+                        {% endif %}
+                    </span>
                 </h2>
             </div>
 
+            <!-- Graphique Chart.js -->
             <div class="grid grid-cols-1 gap-6 mb-6">
                 <div class="bg-white p-5 border border-zinc-200 rounded-md">
-                    <h3 class="font-bold uppercase mb-4">Marges et flux par session d'équarrissage</h3>
+                    <h3 class="font-bold uppercase mb-4 text-xs tracking-wider text-zinc-600">Marges et flux financiers par session</h3>
                     <div class="h-64">
                         <canvas id="productChart"></canvas>
                     </div>
                 </div>
             </div>
 
+            <!-- Tableau explicatif -->
             <div class="bg-white border border-zinc-200 rounded-md overflow-hidden">
-                <div class="p-4 border-b border-zinc-100">
-                    <h3 class="font-bold uppercase">Détails des Sessions du Produit</h3>
+                <div class="p-4 border-b border-zinc-100 flex justify-between items-center">
+                    <h3 class="font-bold uppercase text-xs tracking-wider text-zinc-800">Détails des Sessions</h3>
+                    <span class="font-mono text-[10px] bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded text-zinc-600">
+                        {{ processuses|length }} session(s)
+                    </span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="table w-full text-xs">
                         <thead>
-                        <tr class="bg-zinc-50 border-b border-zinc-200 uppercase tracking-widerfont-semibold">
+                        <tr class="bg-zinc-50 border-b border-zinc-200 uppercase tracking-wider font-semibold text-zinc-600">
+                            {% if not selectedProduct %}
+                                <th class="py-3 px-4 text-left">Produit</th>
+                            {% endif %}
                             <th class="py-3 px-4 text-left">Nom de la session</th>
-                            <th class="py-3 px-4 text-left">Date de création</th>
-                            <th class="py-3 px-4 text-right">Produits (+)</th>
+                            <th class="py-3 px-4 text-left">Date</th>
+                            <th class="py-3 px-4 text-right">Gains (+)</th>
                             <th class="py-3 px-4 text-right">Charges (-)</th>
-                            <th class="py-3 px-4 text-right">Résultat Net</th>
+                            <th class="py-3 px-4 text-right">Solde Net</th>
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-100">
-                        {% for processus in selectedProduct.processuses %}
+                        {% for processus in processuses %}
                             <tr class="hover:bg-zinc-50/50 transition-colors">
-                                <td class="py-3 px-4 font-semibold text-sm tracking-tight">{{ processus.name }}</td>
-                                <td class="py-3 px-4 font-mono">{{ processus.createdAt|date('d/m/Y') }}</td>
+                                {% if not selectedProduct %}
+                                    <td class="py-3 px-4 font-bold uppercase text-zinc-700">{{ processus.product.name }}</td>
+                                {% endif %}
+                                <td class="py-3 px-4 font-semibold text-sm tracking-tight text-zinc-900">{{ processus.name }}</td>
+                                <td class="py-3 px-4 font-mono text-zinc-500">{{ processus.createdAt|date('d/m/Y') }}</td>
                                 <td class="py-3 px-4 text-right text-emerald-600 font-mono font-medium">+ {{ processus.gainsTotal|number_format(2, ',', ' ') }} €</td>
                                 <td class="py-3 px-4 text-right text-rose-600 font-mono font-medium">- {{ processus.costsTotal|number_format(2, ',', ' ') }} €</td>
                                 <td class="py-3 px-4 text-right font-mono font-bold tracking-tight {% if processus.soldeFinal >= 0 %}text-zinc-900{% else %}text-rose-600{% endif %}">
@@ -83,38 +135,34 @@
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
         <script>
             let myProductChart = null;
 
             async function exportDashboardToPDF() {
-                if (!myProductChart) {
-                    alert("Le graphique n'est pas prêt pour l'export.");
-                    return;
-                }
+                if (!myProductChart) return;
 
                 try {
                     const chartImage = myProductChart.toBase64Image();
                     const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({
-                        orientation: 'landscape',
-                        unit: 'mm',
-                        format: 'a4'
-                    });
+                    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-                    // Construction du contenu du PDF avec le style sobre noir/gris
                     pdf.setFont("helvetica", "bold");
                     pdf.setFontSize(16);
-                    pdf.setTextColor(24, 24, 27); // Noir Zinc-900
-                    pdf.text("RAPPORT D'EXPLOITATION ET DE VALORISATION", 14, 18);
+                    pdf.setTextColor(24, 24, 27);
+                    pdf.text("RAPPORT D'ANALYSE FINANCIÈRE", 14, 18);
 
                     pdf.setFont("helvetica", "normal");
                     pdf.setFontSize(11);
-                    pdf.setTextColor(113, 113, 122); // Gris Zinc-500
-                    pdf.text("Produit analysé : {{ selectedProduct.name|upper }}", 14, 25);
+                    pdf.setTextColor(113, 113, 122);
+
+                    {% if selectedProduct %}
+                    pdf.text("Filière : {{ selectedCategory.name|upper }} | Produit : {{ selectedProduct.name|upper }}", 14, 25);
+                    {% else %}
+                    pdf.text("Filière : {{ selectedCategory.name|upper }} (Vue globale)", 14, 25);
+                    {% endif %}
+
                     pdf.text("Généré le : " + new Date().toLocaleDateString('fr-FR'), 14, 31);
 
-                    // Ligne fine noire style Shadcn
                     pdf.setDrawColor(24, 24, 27);
                     pdf.setLineWidth(0.5);
                     pdf.line(14, 35, 283, 35);
@@ -122,35 +170,17 @@
                     pdf.setFont("helvetica", "bold");
                     pdf.setFontSize(10);
                     pdf.setTextColor(24, 24, 27);
-                    pdf.text("1. Analyse visuelle des flux et marges nettes", 14, 45);
+                    pdf.text("1. Évolution des flux financiers", 14, 45);
                     pdf.addImage(chartImage, 'PNG', 14, 48, 260, 100);
 
-                    pdf.text("2. Résumé des performances par processus", 14, 160);
-
-                    pdf.setFont("helvetica", "normal");
-                    pdf.setFontSize(9);
-                    let yPosition = 168;
-
-                    {% for processus in selectedProduct.processuses %}
-                    {% set status = processus.soldeFinal >= 0 ? "PROFIT" : "CHARGE SANITAIRE" %}
-                    if (yPosition < 200) {
-                        pdf.text("- {{ processus.name|e('js') }} | Résultat : {{ processus.soldeFinal|number_format(2, ',', ' ') }} EUR ({{ status }})", 18, yPosition);
-                        yPosition += 6;
-                    }
-                    {% endfor %}
-
                     const pdfBlob = pdf.output('blob');
-                    const defaultFileName = 'Rapport_Valorisation_{{ selectedProduct.name|u.snake }}.pdf';
+                    const defaultFileName = 'Rapport_Dashboard.pdf';
 
                     if (window.showSaveFilePicker) {
-                        const options = {
+                        const handle = await window.showSaveFilePicker({
                             suggestedName: defaultFileName,
-                            types: [{
-                                description: 'Document PDF',
-                                accept: { 'application/pdf': ['.pdf'] }
-                            }]
-                        };
-                        const handle = await window.showSaveFilePicker(options);
+                            types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]
+                        });
                         const writable = await handle.createWritable();
                         await writable.write(pdfBlob);
                         await writable.close();
@@ -162,12 +192,8 @@
                         downloadLink.click();
                         document.body.removeChild(downloadLink);
                     }
-
                 } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        console.error("Erreur lors de la génération du PDF :", err);
-                        alert("Impossible de générer le PDF.");
-                    }
+                    if (err.name !== 'AbortError') console.error(err);
                 }
             }
 
@@ -180,25 +206,27 @@
                 const costs = [];
                 const soldes = [];
 
-                {% for processus in selectedProduct.processuses %}
+                {% for processus in processuses %}
+                {% if not selectedProduct %}
+                labels.push("{{ processus.product.name|e('js') }} - {{ processus.name|e('js') }}");
+                {% else %}
                 labels.push("{{ processus.name|e('js') }}");
+                {% endif %}
                 gains.push({{ processus.gainsTotal }});
                 costs.push({{ processus.costsTotal }});
                 soldes.push({{ processus.soldeFinal }});
                 {% endfor %}
 
-                if (myProductChart) {
-                    myProductChart.destroy();
-                }
+                if (myProductChart) myProductChart.destroy();
 
                 myProductChart = new Chart(ctx.getContext('2d'), {
                     type: 'bar',
                     data: {
                         labels: labels,
                         datasets: [
-                            { label: 'Valorisations (€)', data: gains, backgroundColor: '#71717a', borderRadius: 0 }, // Gris ardoise neutre
-                            { label: 'Coûts / Logistique (€)', data: costs, backgroundColor: '#e11d48', borderRadius: 0 }, // Carmin mat
-                            { label: 'Marge Nette (€)', data: soldes, type: 'line', borderColor: '#18181b', backgroundColor: '#18181b', tension: 0.1, borderWidth: 2 } // Noir pur
+                            { label: 'Gains (€)', data: gains, backgroundColor: '#10b981', borderRadius: 2 },
+                            { label: 'Coûts (€)', data: costs, backgroundColor: '#f43f5e', borderRadius: 2 },
+                            { label: 'Solde Net (€)', data: soldes, type: 'line', borderColor: '#18181b', backgroundColor: '#18181b', tension: 0.1, borderWidth: 2 }
                         ]
                     },
                     options: {
@@ -206,15 +234,18 @@
                         maintainAspectRatio: false,
                         animation: false,
                         scales: {
-                            y: { grid: { color: '#f4f4f5' }, beginAtZero: true, ticks: { font: { size: 10 } } },
-                            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-                        },
-                        plugins: {
-                            legend: { labels: { boxWidth: 12, font: { size: 11, weight: '500' } } }
+                            y: { grid: { color: '#f4f4f5' }, beginAtZero: true },
+                            x: { grid: { display: false } }
                         }
                     }
                 });
             });
         </script>
+    {% else %}
+        <div class="bg-white border border-zinc-200 rounded-md p-12 text-center my-6">
+            <p class="text-xs text-zinc-500 font-medium italic">
+                Aucune session trouvée pour ce filtre.
+            </p>
+        </div>
     {% endif %}
 {% endblock %}

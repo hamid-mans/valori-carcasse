@@ -1,140 +1,207 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Reporting Analytique Produits - Valori-Carcasse{% endblock %}
+{% block title %}Reporting Financier - Valori-Carcasse{% endblock %}
 
 {% block body %}
-    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="max-w-6xl mx-auto space-y-6">
         <div>
-            <h1 class="text-4xl font-bold tracking-tight text-zinc-900">Analyse Stratégique du Portefeuille</h1>
-            <p class="text-lg text-zinc-500 mt-1">Performances commerciales et financières consolidées par catégorie de matières.</p>
+            <h1 class="text-2xl font-bold text-zinc-900">Reporting Financier & Rentabilité</h1>
+            <p class="text-sm text-zinc-500 mt-1">Analyse du point mort, de la marge de sécurité et du prix plancher par entité.</p>
         </div>
-        <span class="inline-block font-mono text-[10px] font-bold text-zinc-600 bg-zinc-100 border border-zinc-200 px-2.5 py-1 rounded tracking-wider uppercase">
-            Analyse Catalogue
-        </span>
-    </div>
 
-    {# Filtres #}
-    <div class="bg-white border border-zinc-200 rounded-md p-5 mb-6">
-        <form method="get" action="{{ path('app_reporting') }}" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end w-full">
-            <div class="space-y-1">
-                <label class="block font-semibold uppercase tracking-wider mb-1">Date de début</label>
-                <input type="date" name="date_debut" value="{{ dateDebut }}" class="w-full px-3 py-1.5 bg-white border border-zinc-200 rounded-md text-xs font-medium text-zinc-900 font-mono focus:outline-none focus:border-zinc-400 transition-colors">
+        <!-- FILTRES DE SÉLECTION -->
+        <form method="GET" action="{{ path('app_reporting') }}" class="bg-white p-4 rounded-md border border-zinc-200 shadow-sm flex flex-wrap gap-4 items-end">
+            <div class="w-64">
+                <label class="block text-xs font-bold text-zinc-700 mb-1">Catégorie</label>
+                <select name="category_id" onchange="this.form.submit()" class="select select-bordered select-sm w-full text-xs rounded">
+                    <option value="">-- Toutes les catégories --</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selectedCategory and selectedCategory.id == cat.id %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="space-y-1">
-                <label class="block font-semibold uppercase tracking-wider mb-1">Date de fin</label>
-                <input type="date" name="date_fin" value="{{ dateFin }}" class="w-full px-3 py-1.5 bg-white border border-zinc-200 rounded-md text-xs font-medium text-zinc-900 font-mono focus:outline-none focus:border-zinc-400 transition-colors">
+
+            <div class="w-64">
+                <label class="block text-xs font-bold text-zinc-700 mb-1">Produit / Animal</label>
+                <select name="product_id" onchange="this.form.submit()" class="select select-bordered select-sm w-full text-xs rounded">
+                    <option value="">-- Sélectionner un produit --</option>
+                    {% for prod in availableProducts %}
+                        <option value="{{ prod.id }}" {% if selectedProduct and selectedProduct.id == prod.id %}selected{% endif %}>
+                            {{ prod.name }}
+                        </option>
+                    {% endfor %}
+                </select>
             </div>
-            <div>
-                <button type="submit" class="w-full px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md transition-colors">
-                    Actualiser l'analyse
-                </button>
+
+            <div class="w-40">
+                <label class="block text-xs font-bold text-zinc-700 mb-1">Volume à analyser (kg)</label>
+                <input type="number" name="volume" value="{{ kpis ? kpis.volume_actuel : 1000 }}"
+                       onchange="this.form.submit()"
+                       class="input input-bordered input-sm w-full text-xs rounded" />
             </div>
+
+            {% if selectedProduct %}
+                <a href="{{ path('app_reporting') }}" class="text-xs text-zinc-400 hover:text-zinc-600 underline pb-2">Réinitialiser</a>
+            {% endif %}
         </form>
-    </div>
 
-    {% if hasData %}
-        {# KPIs Globaux #}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white border border-zinc-200 rounded-md p-4">
-                <span class="font-bold uppercase tracking-wider">Chiffre d'Affaires Global</span>
-                <div class="text-xl font-bold text-zinc-900 mt-1">{{ globalGainsTotal|number_format(2, ',', ' ') }} €</div>
-            </div>
-            <div class="bg-white border border-zinc-200 rounded-md p-4">
-                <span class="font-bold uppercase tracking-wider">Marge Brute Consolide</span>
-                <div class="text-xl font-bold text-emerald-600 mt-1">{{ globalSoldeTotal|number_format(2, ',', ' ') }} €</div>
-            </div>
-            <div class="bg-white border border-zinc-200 rounded-md p-4">
-                <span class="font-bold uppercase tracking-wider">Taux de Marge Moyen</span>
-                <div class="text-xl font-bold text-zinc-900 mt-1">
-                    {{ globalGainsTotal > 0 ? ((globalSoldeTotal / globalGainsTotal) * 100)|number_format(1) : 0 }} %
+        {% if selectedProduct and kpis %}
+            <!-- DÉTAILS DES KPIS -->
+            <!-- DÉTAILS DES KPIS EN KILO -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <!-- 1. Rentabilité Actuelle -->
+                <div class="bg-white p-4 rounded-md border border-zinc-200 shadow-sm">
+                    <span class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">Rentabilité actuelle</span>
+                    <div class="text-xl font-extrabold font-mono mt-2 {% if kpis.rentabilite_actuelle >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                        {{ kpis.rentabilite_actuelle > 0 ? '+' : '' }}{{ kpis.rentabilite_actuelle|number_format(4, ',', ' ') }} €/kg
+                    </div>
+                    <span class="text-[10px] text-zinc-400">Marge nette par kilo</span>
+                </div>
+
+                <!-- 2. Seuil de Rentabilité -->
+                <div class="bg-white p-4 rounded-md border border-zinc-200 shadow-sm">
+                    <span class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">Seuil de rentabilité</span>
+                    <div class="text-xl font-extrabold font-mono text-zinc-900 mt-2">
+                        {{ kpis.seuil_rentabilite_kg|number_format(0, ',', ' ') }} kg
+                    </div>
+                    <span class="text-[10px] text-zinc-400">{{ kpis.seuil_rentabilite_eur|number_format(0, ',', ' ') }} € de CA</span>
+                </div>
+
+                <!-- 3. Volume Actuel -->
+                <div class="bg-white p-4 rounded-md border border-zinc-200 shadow-sm">
+                    <span class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">Volume actuel</span>
+                    <div class="text-xl font-extrabold font-mono text-zinc-900 mt-2">
+                        {{ kpis.volume_actuel|number_format(0, ',', ' ') }} kg
+                    </div>
+                    <span class="text-[10px] text-zinc-400">Production/Vente globale</span>
+                </div>
+
+                <!-- 4. Marge de Sécurité -->
+                <div class="bg-white p-4 rounded-md border border-zinc-200 shadow-sm">
+                    <span class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">Marge de sécurité</span>
+                    <div class="text-xl font-extrabold font-mono mt-2 {% if kpis.marge_securite_kg >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                        {{ kpis.marge_securite_kg > 0 ? '+' : '' }}{{ kpis.marge_securite_kg|number_format(0, ',', ' ') }} kg
+                    </div>
+                    <span class="text-[10px] text-zinc-400">Indice : {{ kpis.indice_securite|number_format(1, ',', ' ') }}%</span>
+                </div>
+
+                <!-- 5. Prix Minimum -->
+                <div class="bg-white p-4 rounded-md border border-zinc-200 shadow-sm">
+                    <span class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">Prix minimum</span>
+                    <div class="text-xl font-extrabold font-mono text-amber-600 mt-2">
+                        {{ kpis.prix_minimum|number_format(4, ',', ' ') }} €/kg
+                    </div>
+                    <span class="text-[10px] text-zinc-400">Prix de vente à l'équilibre</span>
                 </div>
             </div>
-        </div>
 
-        {# Graphiques de répartition #}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            {# Répartition du CA (Doughnut) #}
-            <div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-1">
-                <div class="border-b border-zinc-100 pb-2 mb-4">
-                    <h3 class="font-bold uppercase tracking-widest ">Mix Matières (% du CA)</h3>
+            <!-- GRAPHIQUE ET RATIO -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- GRAPHIQUE POINT MORT -->
+                <div class="md:col-span-2 bg-white p-5 rounded-md border border-zinc-200 shadow-sm space-y-3">
+                    <div class="flex justify-between items-center border-b border-zinc-100 pb-2">
+                        <h3 class="font-bold text-xs uppercase tracking-wider text-zinc-800">Représentation du Point Mort</h3>
+                        <span class="text-xs font-mono text-zinc-400">Croisement du CA et des Coûts Totaux</span>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="chartPointMort"></canvas>
+                    </div>
                 </div>
-                <div class="h-64 flex items-center justify-center">
-                    <canvas id="productMixChart"></canvas>
+
+                <!-- RATIO & INFOS COMPLÉMENTAIRES -->
+                <div class="bg-white p-5 rounded-md border border-zinc-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-zinc-800 border-b border-zinc-100 pb-2">Ratios de viabilité</h3>
+
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                            <span class="text-zinc-600">Ratio Coûts / Revenus</span>
+                            <span class="font-mono text-zinc-900">{{ kpis.ratio_couts_revenus|number_format(1, ',', ' ') }} %</span>
+                        </div>
+                        <div class="w-full bg-zinc-100 rounded-full h-2 overflow-hidden">
+                            <div class="h-2 rounded-full {% if kpis.ratio_couts_revenus < 90 %}bg-emerald-500{% elseif kpis.ratio_couts_revenus < 100 %}bg-amber-500{% else %}bg-rose-500{% endif %}"
+                                 style="width: {{ kpis.ratio_couts_revenus > 100 ? 100 : kpis.ratio_couts_revenus }}%"></div>
+                        </div>
+                        <p class="text-[10px] text-zinc-400 mt-1">Un ratio inférieur à 100% indique que l'activité génère du bénéfice.</p>
+                    </div>
+
+                    <div class="divide-y divide-zinc-100 text-xs font-mono pt-2">
+                        <div class="py-2 flex justify-between">
+                            <span class="text-zinc-500">Coûts Fixes Totaux :</span>
+                            <span class="font-bold">{{ kpis.couts_fixes|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                        <div class="py-2 flex justify-between">
+                            <span class="text-zinc-500">Coûts Variables Totaux :</span>
+                            <span class="font-bold">{{ kpis.couts_variables|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                        <div class="py-2 flex justify-between">
+                            <span class="text-zinc-500">Chiffre d'Affaires :</span>
+                            <span class="font-bold text-emerald-600">{{ kpis.chiffre_affaires|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {# Comparatif Rentabilité (Barres) #}
-            <div class="bg-white border border-zinc-200 rounded-md p-5 lg:col-span-2">
-                <div class="border-b border-zinc-100 pb-2 mb-4">
-                    <h3 class="font-bold uppercase tracking-widest">Rentabilité Comparative par Catégorie</h3>
-                </div>
-                <div class="h-64">
-                    <canvas id="productCompareChart"></canvas>
-                </div>
-            </div>
-        </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const ctx = document.getElementById('chartPointMort').getContext('2d');
 
-        <script>
-            document.addEventListener('turbo:load', function() {
-                const ctxMix = document.getElementById('productMixChart');
-                const ctxCompare = document.getElementById('productCompareChart');
-                if (!ctxMix || !ctxCompare) return;
+                    const volumeActuel = {{ kpis.volume_actuel }};
+                    const seuilT = {{ kpis.seuil_rentabilite_t }};
+                    const coutsFixes = {{ kpis.couts_fixes }};
+                    const caActuel = {{ kpis.chiffre_affaires }};
+                    const coutsTotauxActuels = {{ kpis.couts_fixes + kpis.couts_variables }};
 
-                const labels = [];
-                const gains = [];
-                classicsSoldes = [];
-                const costs = [];
-
-                {% for stat in productStats %}
-                labels.push("{{ stat.name|e('js') }}");
-                gains.push({{ stat.gains }});
-                classicsSoldes.push({{ stat.solde }});
-                costs.push({{ stat.costs }});
-                {% endfor %}
-
-                // Graph 1 : Mix Matière (Doughnut)
-                new Chart(ctxMix, {
-                    type: 'doughnut',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: gains,
-                            backgroundColor: ['#18181b', '#71717a', '#e4e4e7'],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
-                    }
-                });
-
-                // Graph 2 : Comparatif Marge / Coûts (Bar)
-                new Chart(ctxCompare, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            { label: 'Marge Nette', data: classicsSoldes, backgroundColor: '#10b981' },
-                            { label: 'Coûts Totaux', data: costs, backgroundColor: '#ef4444' }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { grid: { color: '#f4f4f5' }, ticks: { font: { size: 10 } } },
-                            x: { grid: { display: false } }
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['0 t', seuilT.toFixed(0) + ' t (Seuil)', (volumeActuel * 1.2).toFixed(0) + ' t'],
+                            datasets: [
+                                {
+                                    label: 'Chiffre d\'Affaires (€)',
+                                    data: [0, {{ kpis.seuil_rentabilite_eur }}, caActuel * 1.2],
+                                    borderColor: '#10b981',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    fill: false,
+                                    tension: 0.1
+                                },
+                                {
+                                    label: 'Coûts Totaux (€)',
+                                    data: [coutsFixes, {{ kpis.seuil_rentabilite_eur }}, coutsTotauxActuels * 1.1],
+                                    borderColor: '#f43f5e',
+                                    backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                                    fill: false,
+                                    tension: 0.1
+                                },
+                                {
+                                    label: 'Coûts Fixes (€)',
+                                    data: [coutsFixes, coutsFixes, coutsFixes],
+                                    borderColor: '#71717a',
+                                    borderDash: [5, 5],
+                                    fill: false,
+                                    pointRadius: 0
+                                }
+                            ]
                         },
-                        plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 10 } } } }
-                    }
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'top', labels: { boxWidth: 12, font: { size: 10 } } }
+                            },
+                            scales: {
+                                y: { ticks: { font: { size: 10 } }, grid: { color: '#f4f4f5' } },
+                                x: { ticks: { font: { size: 10 } }, grid: { color: '#f4f4f5' } }
+                            }
+                        }
+                    });
                 });
-            });
-        </script>
-    {% else %}
-        <div class="text-center py-16 bg-white border border-zinc-200 rounded-md">
-            <p class="text-xs font-semibold text-zinc-800">Aucune donnée pour cette période.</p>
-        </div>
-    {% endif %}
+            </script>
+        {% else %}
+            <div class="bg-white p-8 rounded-md border border-zinc-200 text-center text-zinc-400 text-xs">
+                Veuillez sélectionner un produit ci-dessus pour afficher l'analyse financière et le graphique de rentabilité.
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}

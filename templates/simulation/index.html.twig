@@ -1,0 +1,270 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Simulation par Étape - Valori-Carcasse{% endblock %}
+
+{% block body %}
+    <style>
+        @media print {
+            /* Masquer le menu, la barre latérale, les filtres et les boutons */
+            nav, sidebar, header, form, button, .no-print {
+                display: none !important;
+            }
+
+            /* Adapter le conteneur principal au format A4 */
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* Forcer l'ouverture des accordéons */
+            details {
+                display: block !important;
+            }
+
+            details summary {
+                list-style: none !important;
+            }
+
+            /* Empêcher les coupures de page au milieu d'un processus */
+            #processus-container > div {
+                page-break-inside: avoid;
+                margin-bottom: 1rem;
+            }
+
+            /* Garder les styles sombres du header lors de l'impression */
+            #simulation-header {
+                background-color: #18181b !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900">Simulation Financi&egrave;re Granulaire</h1>
+            <p class="text-sm text-zinc-500 mt-1">Simulez l'impact d'une variation de coût/gain &eacute;tape par &eacute;tape en temps r&eacute;el.</p>
+        </div>
+
+        <!-- FILTRES DE S&Eacute;LECTION -->
+        <form method="GET" action="{{ path('app_simulation') }}" class="bg-white p-4 rounded-md border border-zinc-200 shadow-sm flex flex-wrap gap-4 items-end">
+            <div class="w-64">
+                <label class="block text-xs font-bold text-zinc-700 mb-1">Cat&eacute;gorie</label>
+                <select name="category_id" onchange="this.form.submit()" class="select select-bordered select-sm w-full text-xs rounded">
+                    <option value="">-- Toutes les cat&eacute;gories --</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selectedCategory and selectedCategory.id == cat.id %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="w-64">
+                <label class="block text-xs font-bold text-zinc-700 mb-1">Produit / Animal</label>
+                <select name="product_id" onchange="this.form.submit()" class="select select-bordered select-sm w-full text-xs rounded">
+                    <option value="">-- S&eacute;lectionner un produit --</option>
+                    {% for prod in availableProducts %}
+                        <option value="{{ prod.id }}" {% if selectedProduct and selectedProduct.id == prod.id %}selected{% endif %}>
+                            {{ prod.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if selectedProduct %}
+                <a href="{{ path('app_simulation') }}" class="text-xs text-zinc-400 hover:text-zinc-600 underline pb-2">R&eacute;initialiser</a>
+            {% endif %}
+        </form>
+
+        {% if selectedProduct %}
+            <!-- EN-TÊTE RÉCAPITULATIF DU PRODUIT -->
+            <div id="simulation-header" class="bg-zinc-900 text-white p-5 rounded-md shadow-sm flex justify-between items-center">
+                <div>
+                    <span class="text-xs text-zinc-400 uppercase tracking-wider block">Produit analys&eacute;</span>
+                    <h2 class="text-xl font-bold">{{ selectedProduct.name }}</h2>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="flex gap-8 font-mono text-right">
+                        <div>
+                            <span class="text-[10px] text-zinc-400 block uppercase">Solde Actuel</span>
+                            <span id="product-total-actual" class="text-lg font-bold">0,00 &euro;</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-zinc-400 block uppercase">Solde Simul&eacute;</span>
+                            <span id="product-total-simulated" class="text-lg font-bold text-emerald-400">0,00 &euro;</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-zinc-400 block uppercase">&Eacute;cart Global</span>
+                            <span id="product-total-diff" class="text-lg font-bold">0,00 &euro;</span>
+                        </div>
+                    </div>
+
+                    <!-- BOUTON EXPORT PDF -->
+                    <button type="button" onclick="exportToPDF()" class="bg-white hover:bg-zinc-100 text-zinc-900 font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-2 transition cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Exporter PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- LISTE DES PROCESSUS ET ÉTAPES -->
+            <div id="processus-container" class="space-y-4">
+                <!-- Inject&eacute; dynamiquement par JavaScript -->
+            </div>
+
+        {% else %}
+            <div class="bg-white p-8 rounded-md border border-zinc-200 text-center text-zinc-400 text-xs">
+                Veuillez s&eacute;lectionner un produit ci-dessus pour d&eacute;marrer la simulation par &eacute;tape.
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function exportToPDF() {
+            // 1. Ouvre tous les accordéons pour que toutes les étapes apparaissent sur le document
+            const detailsElements = document.querySelectorAll('#processus-container details');
+            detailsElements.forEach(detail => detail.open = true);
+
+            // 2. Déclenche l'impression / enregistrement PDF native du navigateur (instantané)
+            window.print();
+
+            // 3. Replie les accordéons après la fermeture du dialogue d'impression
+            setTimeout(() => {
+                detailsElements.forEach(detail => detail.open = false);
+            }, 500);
+        }
+
+
+
+        const productData = {{ productDataJson|raw }};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!productData) return;
+
+            const container = document.getElementById('processus-container');
+            container.innerHTML = '';
+
+            // 1. Rendu HTML de l'arborescence Processus -> Étapes
+            productData.processuses.forEach((proc, pIndex) => {
+                let stepsHtml = '';
+
+                if (proc.steps.length > 0) {
+                    proc.steps.forEach((step, sIndex) => {
+                        stepsHtml += `
+                        <div class="grid grid-cols-12 gap-2 items-center p-2 bg-zinc-50 rounded border border-zinc-100 text-xs hover:bg-zinc-100/50 transition">
+                            <div class="col-span-4 font-medium text-zinc-700">${step.name}</div>
+                            <div class="col-span-3 font-mono text-zinc-500">${step.soldeActuel.toFixed(2)} &euro;</div>
+                            <div class="col-span-2 flex items-center gap-1">
+                                <input type="number" step="0.5" value="0"
+                                       data-pindex="${pIndex}" data-sindex="${sIndex}"
+                                       class="step-variation-input input input-bordered input-xs w-20 font-mono text-center rounded border-zinc-300" />
+                                <span class="text-zinc-400">%</span>
+                            </div>
+                            <div class="col-span-3 font-mono font-bold text-right text-zinc-900" id="sim-step-${pIndex}-${sIndex}">
+                                ${step.soldeActuel.toFixed(2)} &euro;
+                            </div>
+                        </div>
+                    `;
+                    });
+                } else {
+                    stepsHtml = `<div class="text-xs text-zinc-400 italic p-2">Aucune &eacute;tape d&eacute;finie dans ce processus.</div>`;
+                }
+
+                const procBlock = document.createElement('div');
+                procBlock.className = 'bg-white rounded-md border border-zinc-200 shadow-sm overflow-hidden';
+                procBlock.innerHTML = `
+                <details class="group">
+                    <summary class="flex justify-between items-center p-4 bg-zinc-50 cursor-pointer select-none border-b border-zinc-200 group-open:border-zinc-200">
+                        <div class="flex items-center gap-2">
+                            <span class="text-zinc-400 transition group-open:rotate-90 text-xs">&#9654;</span>
+                            <h3 class="font-bold text-sm text-zinc-800">${proc.name}</h3>
+                            <span class="text-[10px] bg-zinc-200 text-zinc-600 px-2 py-0.5 rounded-full font-mono">${proc.steps.length} &eacute;tape(s)</span>
+                        </div>
+                        <div class="flex gap-6 font-mono text-xs">
+                            <div>Actuel : <span class="font-bold">${proc.soldeActuel.toFixed(2)} &euro;</span></div>
+                            <div>Simul&eacute; : <span class="font-bold text-emerald-600" id="proc-sim-${pIndex}">0.00 &euro;</span></div>
+                        </div>
+                    </summary>
+                    <div class="p-4 space-y-2">
+                        ${stepsHtml}
+                    </div>
+                </details>
+            `;
+                container.appendChild(procBlock);
+            });
+
+            // 2. Écoute des changements de pourcentage sur chaque input
+            document.querySelectorAll('.step-variation-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const pIndex = this.dataset.pindex;
+                    const sIndex = this.dataset.sindex;
+                    const variationPct = parseFloat(this.value) || 0;
+
+                    productData.processuses[pIndex].steps[sIndex].variation = variationPct;
+                    recalculateTotals();
+                });
+            });
+
+            // 3. Calcul dynamique instantané
+            function recalculateTotals() {
+                let totalProductActual = 0;
+                let totalProductSimulated = 0;
+
+                productData.processuses.forEach((proc, pIndex) => {
+                    let procActualSum = 0;
+                    let procSimulatedSum = 0;
+
+                    proc.steps.forEach((step, sIndex) => {
+                        const stepActual = step.soldeActuel;
+                        const stepSimulated = stepActual * (1 + (step.variation / 100));
+
+                        procActualSum += stepActual;
+                        procSimulatedSum += stepSimulated;
+
+                        // Mise à jour de la ligne étape
+                        const stepElement = document.getElementById(`sim-step-${pIndex}-${sIndex}`);
+                        if (stepElement) {
+                            stepElement.innerText = stepSimulated.toFixed(2) + ' €';
+                            stepElement.className = `col-span-3 font-mono font-bold text-right ${step.variation !== 0 ? 'text-indigo-600' : 'text-zinc-900'}`;
+                        }
+                    });
+
+                    // Si le processus n'a pas d'étapes associées, on garde son solde de base
+                    if (proc.steps.length === 0) {
+                        procActualSum = proc.soldeActuel;
+                        procSimulatedSum = proc.soldeActuel;
+                    }
+
+                    totalProductActual += procActualSum;
+                    totalProductSimulated += procSimulatedSum;
+
+                    // Mise à jour du sous-total du processus
+                    const procElement = document.getElementById(`proc-sim-${pIndex}`);
+                    if (procElement) {
+                        procElement.innerText = procSimulatedSum.toFixed(2) + ' €';
+                    }
+                });
+
+                // 4. Mise à jour du header global du produit
+                const diff = totalProductSimulated - totalProductActual;
+                document.getElementById('product-total-actual').innerText = totalProductActual.toFixed(2) + ' €';
+                document.getElementById('product-total-simulated').innerText = totalProductSimulated.toFixed(2) + ' €';
+
+                const diffElement = document.getElementById('product-total-diff');
+                diffElement.innerText = (diff > 0 ? '+' : '') + diff.toFixed(2) + ' €';
+                diffElement.className = `text-lg font-bold ${diff > 0 ? 'text-emerald-400' : (diff < 0 ? 'text-rose-400' : 'text-white')}`;
+            }
+
+            // Lancement du calcul initial
+            recalculateTotals();
+        });
+    </script>
+{% endblock %}

@@ -1,4 +1,5 @@
 {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
+    {# Nom du produit #}
 <div class="space-y-1">
     <label class="block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
         Nom de la matière / produit
@@ -16,6 +17,24 @@
     {% endif %}
 </div>
 
+{# Catégorie du produit #}
+<div class="space-y-1">
+    <label class="block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+        Catégorie
+    </label>
+    {{ form_widget(form.category, {
+        'attr': {
+            'class': 'w-full px-3 py-2 bg-white border border-zinc-200 rounded-md text-xs text-zinc-900 font-semibold focus:outline-none focus:border-zinc-400 transition-colors'
+        }
+    }) }}
+    {% if form_errors(form.category) %}
+        <div class="text-rose-600 text-[11px] font-medium mt-1">
+            {{ form_errors(form.category) }}
+        </div>
+    {% endif %}
+</div>
+
+{# Bouton de validation placé en bas #}
 <button type="submit" class="inline-flex items-center justify-center w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md text-xs transition-colors mt-2">
     Enregistrer les modifications
 </button>

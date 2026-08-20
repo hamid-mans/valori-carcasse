@@ -3,91 +3,205 @@
 {% block title %}Calcul de Tournée - Valori-Carcasse{% endblock %}
 
 {% block body %}
-    <div class="max-w-4xl mx-auto space-y-6">
+    <div class="max-w-6xl mx-auto space-y-6">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900">Calculateur de Tournée</h1>
-            <p class="text-base mt-1">Estimez la valeur, le coût et la marge d'une tournée en fonction de sa composition.</p>
+            <p class="text-sm text-zinc-500 mt-1">Sélectionnez les catégories pour saisir les tonnages et estimer la valeur, le coût et la marge.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm md:col-span-1">
-                <h2 class="text-base font-semibold mb-4">Composition du lot</h2>
-                <form method="POST" data-turbo="false" class="space-y-4">
-                    {% for id, info in produits %}
-                        <div class="form-control w-full">
-                            <label class="label py-1">
-                                <span class="font-medium uppercase tracking-wider text-base">{{ info.nom }}</span>
-                                <span class="font-mono text-base">{{ info.valeur|number_format(2, ',', ' ') }} € / Tonne</span>
-                            </label>
-                            <input type="number"
-                                   name="prod_{{ id }}"
-                                   value="{{ saisie[id] }}"
-                                   min="0"
-                                   class="input input-bordered w-full h-10 text-base font-mono focus:outline-zinc-900 rounded-md"
-                                   placeholder="0" />
-                        </div>
-                    {% endfor %}
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-                    <button type="submit" class="inline-flex items-center justify-center w-full px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded-md text-base transition-colors mt-2">
+            <!-- COLONNE GAUCHE : COMPOSITION EN ACCORDÉONS -->
+            <div class="lg:col-span-6 space-y-4">
+                <form method="POST" data-turbo="false" class="space-y-4">
+
+                    <div class="bg-zinc-900 text-white p-3.5 rounded-md flex justify-between items-center shadow-sm">
+                        <span class="text-xs font-mono">Composition du lot par catégorie</span>
+                        <button type="submit" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded text-xs transition-colors">
+                            Calculer la statistique →
+                        </button>
+                    </div>
+
+                    <!-- CLASSEURS DE CATÉGORIES -->
+                    <div class="space-y-3">
+                        {% for category in categories %}
+                            {% set hasActiveInput = false %}
+                            {% for p in category.products %}
+                                {% if saisie[p.id] is defined and saisie[p.id] > 0 %}
+                                    {% set hasActiveInput = true %}
+                                {% endif %}
+                            {% endfor %}
+
+                            <div class="bg-white border border-zinc-200 rounded-md overflow-hidden shadow-sm">
+                                <!-- En-tête de la catégorie -->
+                                <div onclick="toggleAccordion('cat-tournee-{{ category.id }}', 'icon-tournee-{{ category.id }}')"
+                                     class="p-3.5 bg-zinc-50/80 hover:bg-zinc-100 border-b border-zinc-200 flex justify-between items-center cursor-pointer select-none transition-colors">
+                                    <div class="flex items-center gap-2.5">
+                                        <svg id="icon-tournee-{{ category.id }}"
+                                             class="w-4 h-4 text-zinc-500 transition-transform duration-200 {% if hasActiveInput %}rotate-90{% endif %}"
+                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                        <span class="px-2 py-0.5 bg-zinc-900 text-white font-mono text-[10px] rounded uppercase font-bold">Catégorie</span>
+                                        <h2 class="font-bold text-xs text-zinc-900">{{ category.name }}</h2>
+                                    </div>
+                                    <span class="text-xs text-zinc-400">({{ category.products|length }} produit(s))</span>
+                                </div>
+
+                                <!-- Liste des produits dans la catégorie -->
+                                <div id="cat-tournee-{{ category.id }}" class="{% if not hasActiveInput %}hidden{% endif %} p-3 bg-white space-y-3">
+                                    {% for product in category.products %}
+                                        {% if produits[product.id] is defined %}
+                                            <div class="p-2.5 border border-zinc-100 bg-zinc-50/30 rounded flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                <div class="flex-1">
+                                                    <div class="font-bold uppercase text-xs text-zinc-900">{{ product.name }}</div>
+                                                    <div class="font-mono text-[11px] text-zinc-500 mt-0.5">
+                                                        {{ produits[product.id].valeur|number_format(2, ',', ' ') }} € / Tonne
+                                                    </div>
+                                                </div>
+                                                <div class="w-full sm:w-32">
+                                                    <input type="number"
+                                                           name="prod_{{ product.id }}"
+                                                           value="{{ saisie[product.id] }}"
+                                                           min="0"
+                                                           class="input input-bordered w-full h-8 text-xs font-mono text-right focus:outline-zinc-900 rounded"
+                                                           placeholder="0" />
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-xs text-zinc-400 italic">Aucun produit dans cette catégorie.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        <!-- Produits non catégorisés -->
+                        {% if uncategorizedProducts is not empty %}
+                            {% set hasActiveUncat = false %}
+                            {% for p in uncategorizedProducts %}
+                                {% if saisie[p.id] is defined and saisie[p.id] > 0 %}
+                                    {% set hasActiveUncat = true %}
+                                {% endif %}
+                            {% endfor %}
+
+                            <div class="bg-white border border-zinc-200 rounded-md overflow-hidden shadow-sm">
+                                <div onclick="toggleAccordion('cat-tournee-uncat', 'icon-tournee-uncat')"
+                                     class="p-3.5 bg-zinc-50/80 hover:bg-zinc-100 border-b border-zinc-200 flex justify-between items-center cursor-pointer select-none">
+                                    <div class="flex items-center gap-2.5">
+                                        <svg id="icon-tournee-uncat" class="w-4 h-4 text-zinc-500 transition-transform duration-200 {% if hasActiveUncat %}rotate-90{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                        <h2 class="font-bold text-xs text-zinc-900">Non catégorisés</h2>
+                                    </div>
+                                    <span class="text-xs text-zinc-400">({{ uncategorizedProducts|length }})</span>
+                                </div>
+
+                                <div id="cat-tournee-uncat" class="{% if not hasActiveUncat %}hidden{% endif %} p-3 space-y-3">
+                                    {% for product in uncategorizedProducts %}
+                                        {% if produits[product.id] is defined %}
+                                            <div class="p-2.5 border border-zinc-100 bg-zinc-50/30 rounded flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                <div class="flex-1">
+                                                    <div class="font-bold uppercase text-xs text-zinc-900">{{ product.name }}</div>
+                                                    <div class="font-mono text-[11px] text-zinc-500 mt-0.5">
+                                                        {{ produits[product.id].valeur|number_format(2, ',', ' ') }} € / Tonne
+                                                    </div>
+                                                </div>
+                                                <div class="w-full sm:w-32">
+                                                    <input type="number"
+                                                           name="prod_{{ product.id }}"
+                                                           value="{{ saisie[product.id] }}"
+                                                           min="0"
+                                                           class="input input-bordered w-full h-8 text-xs font-mono text-right focus:outline-zinc-900 rounded"
+                                                           placeholder="0" />
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white font-medium rounded text-xs transition-colors shadow">
                         Calculer la statistique
                     </button>
                 </form>
             </div>
 
-            <div class="md:col-span-2 space-y-4">
+            <!-- COLONNE DROITE : RÉSULTATS & DÉTAILS DE LA SIMULATION -->
+            <div class="lg:col-span-6 space-y-4">
                 {% if resultats is not null %}
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm">
-                            <span class="uppercase tracking-wider font-semibold text-base">Valeur Totale</span>
-                            <div class="text-xl font-bold text-zinc-900 mt-1">{{ resultats.total_valeur|number_format(2, ',', ' ') }} €</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="bg-white p-3.5 rounded-md border border-zinc-200 shadow-sm">
+                            <span class="uppercase tracking-wider font-semibold text-[10px] text-zinc-500">Valeur Totale</span>
+                            <div class="text-base font-bold text-zinc-900 mt-0.5">{{ resultats.total_valeur|number_format(2, ',', ' ') }} €</div>
                         </div>
-                        <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm">
-                            <span class="uppercase tracking-wider font-semibold text-base">Coût Estimé</span>
-                            <div class="text-xl font-bold text-zinc-700 mt-1">{{ resultats.total_cout|number_format(2, ',', ' ') }} €</div>
+                        <div class="bg-white p-3.5 rounded-md border border-zinc-200 shadow-sm">
+                            <span class="uppercase tracking-wider font-semibold text-[10px] text-zinc-500">Coût Estimé</span>
+                            <div class="text-base font-bold text-zinc-700 mt-0.5">{{ resultats.total_cout|number_format(2, ',', ' ') }} €</div>
                         </div>
-                        <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm {% if resultats.marge >= 0 %}bg-emerald-50/50 border-emerald-200{% else %}bg-rose-50/50 border-rose-200{% endif %}">
-                            <span class="uppercase tracking-wider font-semibold text-base {% if resultats.marge >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">Marge Brute</span>
-                            <div class="text-xl font-black {% if resultats.marge >= 0 %}text-emerald-700{% else %}text-rose-700{% endif %} mt-1">{{ resultats.marge|number_format(2, ',', ' ') }} €</div>
+                        <div class="bg-white p-3.5 rounded-md border border-zinc-200 shadow-sm {% if resultats.marge >= 0 %}bg-emerald-50/50 border-emerald-200{% else %}bg-rose-50/50 border-rose-200{% endif %}">
+                            <span class="uppercase tracking-wider font-semibold text-[10px] {% if resultats.marge >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">Marge Brute</span>
+                            <div class="text-base font-black {% if resultats.marge >= 0 %}text-emerald-700{% else %}text-rose-700{% endif %} mt-0.5">{{ resultats.marge|number_format(2, ',', ' ') }} €</div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
-                        <div class="px-5 py-4 border-b border-zinc-100 bg-zinc-50/50">
-                            <h3 class="font-bold tracking-wide uppercase text-base">Détail de la simulation</h3>
+                    <div class="bg-white rounded-md border border-zinc-200 shadow-sm overflow-hidden">
+                        <div class="px-4 py-3 border-b border-zinc-100 bg-zinc-50/50">
+                            <h3 class="font-bold tracking-wide uppercase text-xs text-zinc-800">Détail de la simulation</h3>
                         </div>
-                        <table class="table w-full text-base">
-                            <thead>
-                            <tr class="bg-zinc-50/30 border-b border-zinc-100">
-                                <th>Produit</th>
-                                <th class="text-center">Quantité</th>
-                                <th class="text-right">Valeur Unitaire</th>
-                                <th class="text-right">Sous-total Valeur</th>
-                            </tr>
-                            </thead>
-                            <tbody class="divide-y divide-zinc-100 text-zinc-700">
-                            {% for type, qte in saisie %}
-                                {% if qte > 0 %}
-                                    <tr>
-                                        <td class="font-semibold text-zinc-900">{{ produits[type].nom }}</td>
-                                        <td class="text-center bg-zinc-50/50 font-bold">{{ qte }}</td>
-                                        <td class="text-right">{{ produits[type].valeur|number_format(2, ',', ' ') }} €</td>
-                                        <td class="text-right font-medium">{{ (produits[type].valeur * qte)|number_format(2, ',', ' ') }} €</td>
-                                    </tr>
-                                {% endif %}
-                            {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="table w-full text-xs">
+                                <thead>
+                                <tr class="bg-zinc-50/30 border-b border-zinc-100 text-zinc-500">
+                                    <th class="py-2.5">Produit</th>
+                                    <th class="text-center py-2.5">Qté</th>
+                                    <th class="text-right py-2.5">Unitaire</th>
+                                    <th class="text-right py-2.5">Sous-total</th>
+                                </tr>
+                                </thead>
+                                <tbody class="divide-y divide-zinc-100 text-zinc-700">
+                                {% for id, qte in saisie %}
+                                    {% if qte > 0 %}
+                                        <tr>
+                                            <td class="font-semibold text-zinc-900 py-2.5">{{ produits[id].nom }}</td>
+                                            <td class="text-center bg-zinc-50/50 font-bold py-2.5">{{ qte }}</td>
+                                            <td class="text-right py-2.5">{{ produits[id].valeur|number_format(2, ',', ' ') }} €</td>
+                                            <td class="text-right font-medium py-2.5">{{ (produits[id].valeur * qte)|number_format(2, ',', ' ') }} €</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 {% else %}
-                    <div class="bg-zinc-100/50 border-2 border-dashed border-zinc-200 rounded-xl p-12 text-center flex flex-col items-center justify-center h-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-10 h-10 text-zinc-400 mb-2">
+                    <div class="bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-md p-10 text-center flex flex-col items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-zinc-400 mb-2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
                         </svg>
-                        <span class="font-medium text-base">Renseignez des quantités à gauche pour générer les statistiques de la tournée.</span>
+                        <span class="font-medium text-xs text-zinc-500">Ouvrez une catégorie à gauche et renseignez des quantités pour afficher le calcul.</span>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- SCRIPT JS DE BASCULE D'ACCORDÉON -->
+    <script>
+        function toggleAccordion(bodyId, iconId) {
+            const body = document.getElementById(bodyId);
+            const icon = document.getElementById(iconId);
+
+            if (body.classList.contains('hidden')) {
+                body.classList.remove('hidden');
+                icon.classList.add('rotate-90');
+            } else {
+                body.classList.add('hidden');
+                icon.classList.remove('rotate-90');
+            }
+        }
+    </script>
 {% endblock %}

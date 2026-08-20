@@ -53,6 +53,14 @@ class Step
         return $this;
     }
 
+    public function getSoldeFinal(): float
+    {
+        $montant = $this->amout ?? 0.0;
+
+        // Si c'est un gain, le solde est positif, sinon négatif (coût)
+        return $this->isGain ? $montant : -$montant;
+    }
+
     public function isGain(): ?bool
     {
         return $this->isGain;

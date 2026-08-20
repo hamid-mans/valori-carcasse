@@ -1,61 +1,148 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Rapports de Gestion Multi-Produits{% endblock %}
+{% block title %}Rapports de Gestion - Comparaison Inter-Catégories{% endblock %}
 
 {% block body %}
-    {# Affichage des messages d'erreur de sélection #}
     {% for message in app.flashes('error') %}
         <div class="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded text-xs font-medium">
             {{ message }}
         </div>
     {% endfor %}
 
-    <div class="mb-8">
-        <h1 class="text-4xl font-bold tracking-tight text-zinc-900">Rapports de Gestion Analytique</h1>
-        <p class="text-lg text-zinc-500 mt-1">Cochez les matières brutes que vous souhaitez analyser et comparer au sein d'un même rapport.</p>
+    <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-zinc-900">Audit & Comparatif Inter-Catégories</h1>
+            <p class="text-sm text-zinc-500 mt-1">Cliquez sur une catégorie pour dérouler ses produits, puis cochez ceux que vous souhaitez comparer.</p>
+        </div>
     </div>
 
     <form action="{{ path('app_rapport_generate') }}" method="POST" data-turbo="false">
-        <div class="bg-white border border-zinc-200 rounded-md overflow-hidden">
-            <div class="p-4 border-b border-zinc-100 bg-zinc-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <h2 class="font-bold uppercase tracking-widest">Catalogue des matières disponibles</h2>
-                <div class="flex gap-2">
-                    <button type="button" onclick="toggleAll(true)" class="text-[15px] text-zinc-500 hover:text-zinc-900 font-medium">Tout cocher</button>
-                    <span class="text-zinc-300 text-[11px]">•</span>
-                    <button type="button" onclick="toggleAll(false)" class="text-[15px] text-zinc-500 hover:text-zinc-900 font-medium">Tout décocher</button>
-                </div>
+
+        <!-- BARRE D'ACTIONS GLOBALE -->
+        <div class="bg-zinc-900 text-white rounded-md p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-sm sticky top-4 z-10">
+            <div class="text-xs font-mono">
+                Cochez les produits à comparer à travers les catégories.
             </div>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="toggleAll(true)" class="text-xs text-zinc-300 hover:text-white underline">Tout cocher</button>
+                <span class="text-zinc-600 text-xs">•</span>
+                <button type="button" onclick="toggleAll(false)" class="text-xs text-zinc-300 hover:text-white underline">Tout décocher</button>
+                <button type="submit" class="ml-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded text-xs transition-colors shadow">
+                    Lancer la comparaison →
+                </button>
+            </div>
+        </div>
 
-            <ul class="divide-y divide-zinc-100 text-xs">
-                {% for product in products %}
-                    <li class="p-4 flex items-center justify-between hover:bg-zinc-50/40 transition-colors">
+        <!-- LISTE ACCORDÉON PAR CATÉGORIE -->
+        <div class="space-y-4">
+            {% for category in categories %}
+                <div class="bg-white border border-zinc-200 rounded-md overflow-hidden shadow-sm transition-all">
+
+                    <!-- EN-TÊTE CLIQUABLE POUR DÉROULER -->
+                    <div onclick="toggleAccordion('cat-body-{{ category.id }}', 'icon-{{ category.id }}')"
+                         class="p-4 bg-zinc-50/80 hover:bg-zinc-100 border-b border-zinc-200 flex justify-between items-center cursor-pointer select-none transition-colors">
+
                         <div class="flex items-center gap-3">
-                            <input type="checkbox" name="selected_products[]" value="{{ product.id }}" class="product-checkbox w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900">
-                            <div>
-                                <span class="font-mono font-bold uppercase tracking-tight text-lg">{{ product.name }}</span>
-                                <div class="text-[13px] mt-0.5">{{ product.processuses|length }} session(s) d'exploitation rattachée(s)</div>
-                            </div>
-                        </div>
-                    </li>
-                {% else %}
-                    <li class="p-8 text-center text-zinc-400 italic">Aucun produit disponible en base de données.</li>
-                {% endfor %}
-            </ul>
+                            <!-- Flèche rotative -->
+                            <svg id="icon-{{ category.id }}" class="w-4 h-4 text-zinc-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
 
-            {% if products is not empty %}
-                <div class="p-4 bg-zinc-50 border-t border-zinc-100 flex justify-end">
-                    {# Le bouton DOIT être ici, avant la fermeture du form #}
-                    <button type="submit" class="inline-flex items-center justify-center px-4 py-2 bg-zinc-900 text-white hover:bg-zinc-800 font-semibold rounded text-xs transition-colors shadow-sm">
-                        Générer l'audit comparatif →
-                    </button>
+                            <span class="px-2 py-0.5 bg-zinc-900 text-white font-mono text-[10px] rounded uppercase font-bold">Catégorie</span>
+                            <h2 class="font-bold text-sm text-zinc-900">{{ category.name }}</h2>
+                            <span class="text-xs text-zinc-400">({{ category.products|length }} produit(s))</span>
+                        </div>
+
+                        <!-- Boutons d'action rapide sur le bloc (événement stoppé pour ne pas fermer/ouvrir l'accordéon) -->
+                        <div class="flex gap-2 text-[11px]" onclick="event.stopPropagation()">
+                            <button type="button" onclick="toggleCategory({{ category.id }}, true)" class="text-zinc-500 hover:text-zinc-900 font-medium">Cocher le bloc</button>
+                            <span class="text-zinc-300">•</span>
+                            <button type="button" onclick="toggleCategory({{ category.id }}, false)" class="text-zinc-500 hover:text-zinc-900 font-medium">Décocher le bloc</button>
+                        </div>
+                    </div>
+
+                    <!-- CORPS DE LA CATÉGORIE (CACHÉ PAR DÉFAUT) -->
+                    <div id="cat-body-{{ category.id }}" class="hidden">
+                        <ul class="divide-y divide-zinc-100 text-xs">
+                            {% for product in category.products %}
+                                <li class="p-3.5 pl-11 flex items-center justify-between hover:bg-zinc-50 transition-colors">
+                                    <label class="flex items-center gap-3 cursor-pointer w-full">
+                                        <input type="checkbox" name="selected_products[]" value="{{ product.id }}" class="product-checkbox cat-{{ category.id }} w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900">
+                                        <div>
+                                            <span class="font-mono font-bold text-sm text-zinc-900">{{ product.name }}</span>
+                                            <div class="text-[11px] text-zinc-500">
+                                                {{ product.processuses|length }} processus rattaché(s)
+                                            </div>
+                                        </div>
+                                    </label>
+                                </li>
+                            {% else %}
+                                <li class="p-4 pl-11 text-zinc-400 italic text-xs">Aucun produit dans cette catégorie.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
+
+            {% if uncategorizedProducts is not empty %}
+                <div class="bg-white border border-zinc-200 rounded-md overflow-hidden shadow-sm">
+                    <div onclick="toggleAccordion('cat-body-uncat', 'icon-uncat')" class="p-4 bg-zinc-50/80 hover:bg-zinc-100 border-b border-zinc-200 flex justify-between items-center cursor-pointer select-none">
+                        <div class="flex items-center gap-3">
+                            <svg id="icon-uncat" class="w-4 h-4 text-zinc-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                            <h2 class="font-bold text-sm text-zinc-900">Produits non catégorisés</h2>
+                        </div>
+                    </div>
+                    <div id="cat-body-uncat" class="hidden">
+                        <ul class="divide-y divide-zinc-100 text-xs">
+                            {% for product in uncategorizedProducts %}
+                                <li class="p-3.5 pl-11 flex items-center justify-between hover:bg-zinc-50">
+                                    <label class="flex items-center gap-3 cursor-pointer w-full">
+                                        <input type="checkbox" name="selected_products[]" value="{{ product.id }}" class="product-checkbox w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900">
+                                        <span class="font-mono font-bold text-sm text-zinc-900">{{ product.name }}</span>
+                                    </label>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
             {% endif %}
         </div>
     </form>
 
+    <!-- LOGIQUE JAVASCRIPT -->
     <script>
+        // Fonction d'ouverture / fermeture d'un bloc avec rotation de l'icône
+        function toggleAccordion(bodyId, iconId) {
+            const body = document.getElementById(bodyId);
+            const icon = document.getElementById(iconId);
+
+            if (body.classList.contains('hidden')) {
+                body.classList.remove('hidden');
+                icon.classList.add('rotate-90');
+            } else {
+                body.classList.add('hidden');
+                icon.classList.remove('rotate-90');
+            }
+        }
+
+        // Tout cocher / Tout décocher au niveau global
         function toggleAll(checked) {
             document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = checked);
+        }
+
+        // Tout cocher / Tout décocher sur un bloc précis
+        function toggleCategory(catId, checked) {
+            document.querySelectorAll('.cat-' + catId).forEach(cb => cb.checked = checked);
+
+            // Ouvre automatiquement la catégorie si on coche/décoche ses éléments
+            const body = document.getElementById('cat-body-' + catId);
+            const icon = document.getElementById('icon-' + catId);
+            if (body && body.classList.contains('hidden')) {
+                body.classList.remove('hidden');
+                icon.classList.add('rotate-90');
+            }
         }
     </script>
 {% endblock %}
