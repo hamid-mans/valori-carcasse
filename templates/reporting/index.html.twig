@@ -10,41 +10,48 @@
         </div>
 
         <!-- FILTRES DE SÉLECTION -->
-        <form method="GET" action="{{ path('app_reporting') }}" class="bg-white p-4 rounded-md border border-zinc-200 shadow-sm flex flex-wrap gap-4 items-end">
-            <div class="w-64">
-                <label class="block text-xs font-bold text-zinc-700 mb-1">Catégorie</label>
-                <select name="category_id" onchange="this.form.submit()" class="select select-bordered select-sm w-full text-xs rounded">
-                    <option value="">-- Toutes les catégories --</option>
-                    {% for cat in categories %}
-                        <option value="{{ cat.id }}" {% if selectedCategory and selectedCategory.id == cat.id %}selected{% endif %}>
-                            {{ cat.name }}
-                        </option>
-                    {% endfor %}
-                </select>
+        <form method="GET" action="{{ path('app_reporting') }}" class="bg-white p-4 rounded-md border border-zinc-200 shadow-sm">
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="w-64">
+                    <label class="block text-xs font-bold text-zinc-700 mb-1">Catégorie</label>
+                    <select name="category_id" onchange="this.form.submit()" class="select select-bordered select-sm w-full text-xs rounded">
+                        <option value="">-- Toutes les catégories --</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if selectedCategory and selectedCategory.id == cat.id %}selected{% endif %}>
+                                {{ cat.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="w-64">
+                    <label class="block text-xs font-bold text-zinc-700 mb-1">Produit / Animal</label>
+                    <select name="product_id" onchange="this.form.submit()" class="select select-bordered select-sm w-full text-xs rounded">
+                        <option value="">-- Sélectionner un produit --</option>
+                        {% for prod in availableProducts %}
+                            <option value="{{ prod.id }}" {% if selectedProduct and selectedProduct.id == prod.id %}selected{% endif %}>
+                                {{ prod.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="w-40">
+                    <label class="block text-xs font-bold text-zinc-700 mb-1">Volume à analyser (kg)</label>
+                    <input type="number" name="volume" value="{{ kpis ? kpis.volume_actuel : 1000 }}"
+                           onchange="this.form.submit()"
+                           class="input input-bordered input-sm w-full text-xs rounded" />
+                </div>
+
+                {% if selectedProduct %}
+                    <a href="{{ path('app_reporting') }}" class="text-xs text-zinc-400 hover:text-zinc-600 underline pb-2">Réinitialiser</a>
+                {% endif %}
             </div>
 
-            <div class="w-64">
-                <label class="block text-xs font-bold text-zinc-700 mb-1">Produit / Animal</label>
-                <select name="product_id" onchange="this.form.submit()" class="select select-bordered select-sm w-full text-xs rounded">
-                    <option value="">-- Sélectionner un produit --</option>
-                    {% for prod in availableProducts %}
-                        <option value="{{ prod.id }}" {% if selectedProduct and selectedProduct.id == prod.id %}selected{% endif %}>
-                            {{ prod.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="w-40">
-                <label class="block text-xs font-bold text-zinc-700 mb-1">Volume à analyser (kg)</label>
-                <input type="number" name="volume" value="{{ kpis ? kpis.volume_actuel : 1000 }}"
-                       onchange="this.form.submit()"
-                       class="input input-bordered input-sm w-full text-xs rounded" />
-            </div>
-
-            {% if selectedProduct %}
-                <a href="{{ path('app_reporting') }}" class="text-xs text-zinc-400 hover:text-zinc-600 underline pb-2">Réinitialiser</a>
-            {% endif %}
+            <span class="font-bold">
+                <br>
+                Unité : TONNE (1000 KG)
+            </span>
         </form>
 
         {% if selectedProduct and kpis %}

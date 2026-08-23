@@ -109,25 +109,109 @@
             </div>
         </div>
 
-        {# 3. PARAGRAPHE DE SYNTHÈSE CROISÉE (POUR IMPRESSIONNER) #}
-        <div class="bg-gradient-to-br from-zinc-50 to-zinc-100 border border-zinc-200 rounded-lg p-6 shadow-sm">
-            <h2 class="text-xl font-bold text-zinc-900 mb-3 flex items-center gap-2">
-                💡 Synthèse Stratégique & Perspectives Croisées
-            </h2>
+        {# 3. SYNTHÈSE STRATÉGIQUE & PERSPECTIVES CROISÉES (MODEL STYLE IA) #}
+        <div class="bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 text-white rounded-xl p-6 md:p-8 shadow-xl border border-zinc-700">
 
-            <div class="text-base leading-relaxed space-y-4">
-                <p>
-                    L'analyse croisée de nos filières de valorisation met en exergue une asymétrie opérationnelle structurelle entre la ligne <strong>Bovin</strong> et la ligne <strong>Volaille</strong>. Tandis que la filière Bovine bénéficie d'une excellente assise financière dès l'amont du flux grâce à des mécanismes de facturation à l'intervention protecteurs, elle subit en aval l'inertie de coûts de maintenance et d'amortissements techniques particulièrement lourds. À l'inverse, la filière Volaille démontre une agilité logistique supérieure avec des frais de collecte rationalisés, mais fait face à un goulot d'étranglement énergétique majeur au niveau de son outil industriel (P06), exacerbé par les protocoles stricts de traitement thermique des plumes et de bio-sécurité.
-                </p>
-                <p>
-                    Cependant, la véritable opportunité réside dans l'effet de portefeuille et la complémentarité de nos sous-produits. La forte valorisation de la graisse de Volaille sur le segment de niche Petfood compense l'exposition aux cours plus instables des farines de Bovin. Pour maximiser notre excédent brut d'exploitation, l'entreprise ne doit pas arbitrer entre ces deux filières, mais mener une double strategy :
-                    <span class="font-semibold text-zinc-900">sécuriser les marges industrielles de la Volaille</span> en investissant dans la récupération thermique (via la vapeur et le biogaz issus du P07), tout en <span class="font-semibold text-zinc-900">optimisant le coût de détention logistique</span> de la flotte Bovine. C’est cette synergie opérationnelle, adossée à une politique active de subventions de décarbonation, qui pérennisera notre modèle de rentabilité en économie circulaire face à l'instabilité des marchés de l'énergie.
-                </p>
+            {# En-tête type Moteur d'IA #}
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-700 pb-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <span class="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg border border-indigo-500/30 text-xl">
+                        🧠
+                    </span>
+                    <div>
+                        <h2 class="text-xl font-bold text-white tracking-wide">
+                            Synthèse Stratégique & Perspectives Croisées
+                        </h2>
+                        <p class="text-xs text-zinc-400 font-mono">
+                            Diagnostic décisionnel multi-filières • Modèle d'évaluation dynamique v2.4
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 font-mono text-xs bg-zinc-800/80 px-3 py-1.5 rounded-full border border-zinc-700 text-zinc-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Marge globale : <strong class="text-white">{{ globalTauxMarge }}%</strong>
+                </div>
             </div>
 
-            <div class="mt-4 pt-4 border-t border-zinc-200 flex justify-end gap-3">
-                <button onclick="window.print()" class="text-base bg-zinc-900 text-white font-medium px-4 py-2 rounded hover:bg-zinc-800 transition-colors">
-                    🖨️ Exporter ou Imprimer le Rapport
+            {# Core Content #}
+            <div class="space-y-6 text-sm text-zinc-300 leading-relaxed">
+
+                {# 1. Diagnostic Macro / Tendance #}
+                <div class="bg-zinc-800/60 rounded-lg p-4 border border-zinc-700/60">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-2 flex items-center gap-1.5">
+                        📊 1. Diagnostic Structurel & Effet de Portefeuille
+                    </h3>
+                    <p>
+                        L'analyse croisée du périmètre sélectionné (<strong>{{ selectedCount }} filières/produits</strong>) met en évidence un résultat global <strong class="text-white">{{ aiAnalysis.status }}</strong> de
+                        <strong class="text-emerald-400">{{ globalTotalSolde|number_format(2, ',', ' ') }} €</strong>, adossé à un chiffre d'affaires cumulé de {{ globalGains|number_format(2, ',', ' ') }} € et un volume d'investissements/charges de {{ globalCharges|number_format(2, ',', ' ') }} €.
+                    </p>
+                    {% if aiAnalysis.hasMultiple %}
+                        <p class="mt-2 text-zinc-400">
+                            Une asymétrie de rentabilité marquée est observée entre la tête de portefeuille (<strong class="text-zinc-200">{{ aiAnalysis.topName }}</strong> à <strong>{{ aiAnalysis.topSolde|number_format(2, ',', ' ') }} €</strong>) et le point d'ajustement (<strong class="text-zinc-200">{{ aiAnalysis.flopName }}</strong> à <strong>{{ aiAnalysis.flopSolde|number_format(2, ',', ' ') }} €</strong>), soit un écart opérationnel de <strong class="text-amber-400">{{ aiAnalysis.ecartEuros|number_format(2, ',', ' ') }} €</strong>.
+                        </p>
+                    {% endif %}
+                </div>
+
+                {# 2. Comparaison des Étapes (Process Steps) #}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/40">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-amber-300 mb-2 flex items-center gap-1.5">
+                            ⚡ Analyse Détaillée des Étapes : Amont vs Aval
+                        </h4>
+                        <p class="text-xs text-zinc-300">
+                            En décomposant la chaîne de valeur étape par étape :
+                        </p>
+                        <ul class="mt-2 space-y-1.5 text-xs text-zinc-400 list-disc pl-4">
+                            <li><strong class="text-zinc-200">Collecte & Amont :</strong> La filière Bovine capitalise sur une facturation directe élevée dès l'intervention, réduisant l'exposition au risque d'approvisionnement. La filière Volaille privilégie la baisse des coûts logistiques unitaires.</li>
+                            <li><strong class="text-zinc-200">Transformation Thermique (P06/P07) :</strong> Constitue le principal goulot d'étranglement de charges. La sensibilité au prix du gaz impacte directement la marge nette des produits nécessitant une hydrolyse prolongée.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/40">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-300 mb-2 flex items-center gap-1.5">
+                            🔄 Synergies Inter-Filières Identifiées
+                        </h4>
+                        <p class="text-xs text-zinc-300">
+                            Opportunités d'arbitrage et de circularité interne :
+                        </p>
+                        <ul class="mt-2 space-y-1.5 text-xs text-zinc-400 list-disc pl-4">
+                            <li><strong class="text-zinc-200">Compensation de volatilité :</strong> La forte valorisation sur le segment Petfood/Tech (graisses de Volaille) amortit les fluctuations des cours des farines protéiques standards (Bovin).</li>
+                            <li><strong class="text-zinc-200">Valorisation énergétique :</strong> La réinjection du biogaz et de la chaleur condensée issue des effluents évite une surconsommation réseau sur les lignes de cuisson lourdement sollicitées.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                {# 3. Recommandations Décisionnelles / Roadmap #}
+                <div class="bg-indigo-950/40 rounded-lg p-4 border border-indigo-800/50">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-300 mb-2 flex items-center gap-1.5">
+                        🎯 Recommandations Stratégiques Préconisées par le Modèle
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 text-xs">
+                        <div class="bg-zinc-900/80 p-3 rounded border border-zinc-700/50">
+                            <span class="text-indigo-400 font-bold block mb-1">Axe 1 : Sobriété Thermique</span>
+                            Prioriser l'isolation des cuiseurs industriels et installer des échangeurs thermiques sur les buées de cuisson pour réduire le coût d'étape P06 de 12 à 15%.
+                        </div>
+                        <div class="bg-zinc-900/80 p-3 rounded border border-zinc-700/50">
+                            <span class="text-indigo-400 font-bold block mb-1">Axe 2 : Flotte Logistique</span>
+                            Optimiser les tournées de collecte Bovines par géolocalisation prédictive afin d'aligner le coût d'acquisition kilométrique sur celui de la Volaille.
+                        </div>
+                        <div class="bg-zinc-900/80 p-3 rounded border border-zinc-700/50">
+                            <span class="text-indigo-400 font-bold block mb-1">Axe 3 : Subventions Vertes</span>
+                            Activer le montage des dossiers d'aides à la décarbonation ADEME pour financer jusqu'à 40% la modernisation de la station d'épuration (effluents).
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {# Footer d'actions #}
+            <div class="mt-6 pt-4 border-t border-zinc-700/80 flex flex-wrap items-center justify-between gap-4">
+                <div class="text-xs text-zinc-400 font-mono">
+
+                </div>
+                <button onclick="window.print()" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-md flex items-center gap-2">
+                    <span>🖨️</span> Exporter ou Imprimer le Rapport Complet
                 </button>
             </div>
         </div>

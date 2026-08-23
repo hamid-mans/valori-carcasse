@@ -30,11 +30,10 @@ class RapportController extends AbstractController
     #[Route('/generer', name: 'app_rapport_generate', methods: ['POST'])]
     public function generateReport(Request $request, ProductRepository $productRepository): Response
     {
-        // Récupération des IDs des produits cochés
         $productIds = $request->request->all('selected_products');
 
         if (empty($productIds)) {
-            $this->addFlash('error', 'Veuillez sélectionner au moins un produit (ou deux pour comparer des catégories différentes) afin de générer l’audit.');
+            $this->addFlash('error', 'Veuillez sélectionner au moins un produit pour générer l’audit.');
             return $this->redirectToRoute('app_rapport_index');
         }
 
@@ -46,11 +45,13 @@ class RapportController extends AbstractController
         $globalGains = 0;
 
         $produitsFormates = [];
+        $stepsComparison = [];
 
         foreach ($products as $product) {
             $productSolde = 0;
             $productCharges = 0;
             $productGains = 0;
+            $stepDetails = [];
 
             foreach ($product->getProcessuses() as $processus) {
                 if (method_exists($processus, 'getSoldeFinal')) {
@@ -59,10 +60,23 @@ class RapportController extends AbstractController
 
                 foreach ($processus->getSteps() as $step) {
                     $amount = method_exists($step, 'getAmount') ? $step->getAmount() : $step->getAmout();
-                    if ($step->isGain()) {
+                    $isGain = $step->isGain();
+
+                    if ($isGain) {
                         $productGains += $amount;
                     } else {
                         $productCharges += $amount;
+                    }
+
+                    // Agrégation fine par étape (pour l'analyse IA)
+                    $stepName = $step->getName() ?? ('Étape #' . $step->getId());
+                    if (!isset($stepDetails[$stepName])) {
+                        $stepDetails[$stepName] = ['gains' => 0, 'charges' => 0];
+                    }
+                    if ($isGain) {
+                        $stepDetails[$stepName]['gains'] += $amount;
+                    } else {
+                        $stepDetails[$stepName]['charges'] += $amount;
                     }
                 }
             }
@@ -75,7 +89,6 @@ class RapportController extends AbstractController
             $globalCharges += $productCharges;
             $globalGains += $productGains;
 
-            // Libellé clair combinant Produit + Catégorie pour la comparaison
             $categoryName = $product->getCategory() ? $product->getCategory()->getName() : 'Sans catégorie';
             $displayName = $product->getName() . ' (' . $categoryName . ')';
 
@@ -87,15 +100,20 @@ class RapportController extends AbstractController
                 'charges' => $productCharges,
                 'gains' => $productGains,
                 'processusCount' => count($product->getProcessuses()),
+                'stepDetails' => $stepDetails,
             ];
 
             $produitsFormates[] = [
                 'name' => $displayName,
-                'rentabiliteNet' => $productSolde
+                'rentabiliteNet' => $productSolde,
+                'charges' => $productCharges,
+                'gains' => $productGains,
+                'tauxMarge' => $productGains > 0 ? round(($productSolde / $productGains) * 100, 1) : 0,
+                'stepDetails' => $stepDetails
             ];
         }
 
-        // Tri du plus rentable au moins rentable
+        // Tri par rentabilité
         usort($reportData, function($a, $b) {
             return $b['solde'] <=> $a['solde'];
         });
@@ -103,13 +121,15 @@ class RapportController extends AbstractController
         $topProduct = $reportData[0];
         $flopProduct = count($reportData) > 1 ? $reportData[count($reportData) - 1] : null;
 
-        $aiAnalysis = $this->generateGlobalAiAnalysis($reportData, $globalTotalSolde, $topProduct, $flopProduct);
+        // Génération de l'analyse synthétique avancée
+        $aiAnalysis = $this->generateGlobalAiAnalysis($reportData, $globalTotalSolde, $globalGains, $globalCharges, $topProduct, $flopProduct);
 
         return $this->render('rapport/global_report.html.twig', [
             'reportData' => $reportData,
             'globalTotalSolde' => $globalTotalSolde,
             'globalCharges' => $globalCharges,
             'globalGains' => $globalGains,
+            'globalTauxMarge' => $globalGains > 0 ? round(($globalTotalSolde / $globalGains) * 100, 1) : 0,
             'topProduct' => $topProduct,
             'flopProduct' => $flopProduct,
             'aiAnalysis' => $aiAnalysis,
@@ -118,24 +138,24 @@ class RapportController extends AbstractController
         ]);
     }
 
-    private function generateGlobalAiAnalysis(array $reportData, float $globalSolde, array $top, ?array $flop): string
+    private function generateGlobalAiAnalysis(array $reportData, float $globalSolde, float $globalGains, float $globalCharges, array $top, ?array $flop): array
     {
-        $status = $globalSolde >= 0 ? "excédentaire" : "déficitaire";
+        $tauxMargeGlobal = $globalGains > 0 ? round(($globalSolde / $globalGains) * 100, 1) : 0;
+        $status = $globalSolde >= 0 ? "EXCÉDENTAIRE" : "DÉFICITAIRE";
 
-        $text = "### SYNTHÈSE STRATÉGIQUE COMPARATIVE MULTI-CATÉGORIES\n";
-        $text .= "L'analyse comparative des portefeuilles sélectionnés met en évidence une performance globale {$status} de " . number_format($globalSolde, 2, ',', ' ') . " € de marge nette.\n\n";
+        $ecartEuros = $flop ? ($top['solde'] - $flop['solde']) : 0;
+        $ratioFlopTop = ($flop && $top['solde'] > 0) ? round(($flop['solde'] / $top['solde']) * 100, 1) : 100;
 
-        $text .= "Top Performance : \n";
-        $text .= "Le produit « " . strtoupper($top['displayName']) . " » s'impose comme la référence du panel avec un solde de " . number_format($top['solde'], 2, ',', ' ') . " €.\n\n";
-
-        if ($flop && $flop['solde'] < $top['solde']) {
-            $text .= "Point d'Ajustement : \n";
-            $text .= "À l'inverse, « " . strtoupper($flop['displayName']) . " » affiche un résultat de " . number_format($flop['solde'], 2, ',', ' ') . " €. ";
-
-            $ecart = $top['solde'] - $flop['solde'];
-            $text .= "L'écart de rentabilité entre ces deux périmètres est de " . number_format($ecart, 2, ',', ' ') . " €.";
-        }
-
-        return $text;
+        return [
+            'status' => $status,
+            'tauxMargeGlobal' => $tauxMargeGlobal,
+            'ecartEuros' => $ecartEuros,
+            'ratioFlopTop' => $ratioFlopTop,
+            'topName' => $top['displayName'],
+            'topSolde' => $top['solde'],
+            'flopName' => $flop ? $flop['displayName'] : null,
+            'flopSolde' => $flop ? $flop['solde'] : null,
+            'hasMultiple' => count($reportData) > 1,
+        ];
     }
 }

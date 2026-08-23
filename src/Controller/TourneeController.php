@@ -21,7 +21,7 @@ class TourneeController extends AbstractController
         $categories = $categoryRepository->findAll();
         $uncategorizedProducts = $produitRepository->findBy(['category' => null]);
 
-        // 2. Calcul des valeurs unitaires et coûts par produit
+        // 2. Calcul des valeurs unitaires et coûts par produit (exprimés par tonne)
         $vraisProduits = $produitRepository->findAll();
         $produitsAffiches = [];
 
@@ -33,9 +33,10 @@ class TourneeController extends AbstractController
             }
 
             $produitsAffiches[$product->getId()] = [
-                'nom'    => $product->getName(),
-                'valeur' => $valeurCalculee,
-                'cout'   => $valeurCalculee * 0.60,
+                'nom'        => $product->getName(),
+                'valeur'     => $valeurCalculee,        // € / Tonne
+                'valeur_kg'  => $valeurCalculee / 1000, // € / Kg
+                'cout'       => $valeurCalculee * 0.60, // € / Tonne
             ];
         }
 
@@ -52,12 +53,16 @@ class TourneeController extends AbstractController
             $totalCout = 0;
 
             foreach ($produitsAffiches as $id => $info) {
-                $quantite = (int) $request->request->get('prod_' . $id, 0);
-                $saisie[$id] = $quantite;
+                // Récupération de la quantité saisie en KG (accepte les décimaux)
+                $quantiteKg = (float) str_replace(',', '.', $request->request->get('prod_' . $id, 0));
+                $saisie[$id] = $quantiteKg;
 
-                if ($quantite > 0) {
-                    $totalValeur += $info['valeur'] * $quantite;
-                    $totalCout += $info['cout'] * $quantite;
+                if ($quantiteKg > 0) {
+                    // Conversion de KG en Tonnes pour le calcul (quantiteKg / 1000)
+                    $tonnage = $quantiteKg / 1000;
+
+                    $totalValeur += $info['valeur'] * $tonnage;
+                    $totalCout += $info['cout'] * $tonnage;
                 }
             }
 

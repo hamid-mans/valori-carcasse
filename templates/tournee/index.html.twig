@@ -56,16 +56,16 @@
                                                 <div class="flex-1">
                                                     <div class="font-bold uppercase text-xs text-zinc-900">{{ product.name }}</div>
                                                     <div class="font-mono text-[11px] text-zinc-500 mt-0.5">
-                                                        {{ produits[product.id].valeur|number_format(2, ',', ' ') }} € / Tonne
+                                                        {{ produits[product.id].valeur|number_format(2, ',', ' ') }} € / Tonne (1000 KG)
                                                     </div>
                                                 </div>
-                                                <div class="w-full sm:w-32">
+                                                <div class="flex items-center gap-2 w-full sm:w-32">
                                                     <input type="number"
                                                            name="prod_{{ product.id }}"
                                                            value="{{ saisie[product.id] }}"
                                                            min="0"
                                                            class="input input-bordered w-full h-8 text-xs font-mono text-right focus:outline-zinc-900 rounded"
-                                                           placeholder="0" />
+                                                           placeholder="0" /> <span class="font-bold text-sm">KG</span>
                                                 </div>
                                             </div>
                                         {% endif %}
@@ -156,7 +156,7 @@
                                 <thead>
                                 <tr class="bg-zinc-50/30 border-b border-zinc-100 text-zinc-500">
                                     <th class="py-2.5">Produit</th>
-                                    <th class="text-center py-2.5">Qté</th>
+                                    <th class="text-center py-2.5">Qté (KG)</th>
                                     <th class="text-right py-2.5">Unitaire</th>
                                     <th class="text-right py-2.5">Sous-total</th>
                                 </tr>
@@ -168,7 +168,7 @@
                                             <td class="font-semibold text-zinc-900 py-2.5">{{ produits[id].nom }}</td>
                                             <td class="text-center bg-zinc-50/50 font-bold py-2.5">{{ qte }}</td>
                                             <td class="text-right py-2.5">{{ produits[id].valeur|number_format(2, ',', ' ') }} €</td>
-                                            <td class="text-right font-medium py-2.5">{{ (produits[id].valeur * qte)|number_format(2, ',', ' ') }} €</td>
+                                            <td class="text-right font-medium py-2.5">{{ (produits[id].valeur * (qte / 1000))|number_format(2, ',', ' ') }} €</td>
                                         </tr>
                                     {% endif %}
                                 {% endfor %}

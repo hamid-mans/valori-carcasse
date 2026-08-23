@@ -135,10 +135,13 @@
         {% if statsA and statsB %}
             <!-- Badge de précision -->
             <div class="flex justify-between items-center bg-zinc-100 border border-zinc-200 px-4 py-2 rounded-md mb-4 text-xs font-mono">
-                <span class="text-zinc-500 uppercase">Niveau d'analyse actuel :</span>
+                <div>
+                    <span class="text-zinc-500 uppercase">Niveau d'analyse actuel :</span><br>
+                    <span class="font-bold">Unité : TONNE (1000 KG)</span>
+                </div>
                 <span class="font-bold uppercase bg-zinc-900 text-white px-2 py-0.5 rounded">
-                 {% if statsA.level == 'category' %}Macro-Catégorie{% elseif statsA.level == 'product' %}Gamme Produit{% elseif statsA.level == 'session' %}Session Complète{% else %}Étape Isolée{% endif %}
-            </span>
+                    {% if statsA.level == 'category' %}Macro-Catégorie{% elseif statsA.level == 'product' %}Gamme Produit{% elseif statsA.level == 'session' %}Session Complète{% else %}Étape Isolée{% endif %}
+                </span>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
