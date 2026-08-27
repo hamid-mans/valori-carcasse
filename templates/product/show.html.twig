@@ -56,7 +56,6 @@
                         <thead>
                         <tr class="uppercase tracking-wider font-semibold border-b border-zinc-100">
                             <th class="pb-2 text-left">Nom du processus</th>
-                            <th class="pb-2 text-center">Date de création</th>
                             <th class="pb-2 text-right">Solde Net</th>
                             <th class="pb-2 w-24"></th>
                         </tr>
@@ -66,9 +65,6 @@
                             <tr class="hover:bg-zinc-50/50 transition-colors">
                                 <td class="py-3 font-semibold tracking-tight">
                                     {{ processus.name }}
-                                </td>
-                                <td class="py-3 text-center text-zinc-500 font-mono">
-                                    {{ processus.createdAt|date('d/m/Y') }}
                                 </td>
                                 <td class="py-3 text-right font-mono font-bold {% if processus.soldeFinal >= 0 %}text-zinc-900{% else %}text-rose-600{% endif %}">
                                     {{ processus.soldeFinal|number_format(2, ',', ' ') }} €

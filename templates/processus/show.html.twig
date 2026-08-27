@@ -30,10 +30,6 @@
 			<table class="table w-full text-xs">
 				<tbody class="divide-y divide-zinc-100">
 				<tr>
-					<td class="py-2.5 pl-0 font-medium">Enregistré le :</td>
-					<td class="py-2.5 pr-0 text-right font-mono">{{ processus.createdAt|date('d/m/Y à H:i') }}</td>
-				</tr>
-				<tr>
 					<td class="py-3 pl-0 font-semibold">Solde Net Final :</td>
 					<td class="py-3 pr-0 text-right font-mono font-bold text-sm tracking-tight {% if processus.soldeFinal >= 0 %}text-zinc-900{% else %}text-rose-600{% endif %}">
 						{{ processus.soldeFinal|number_format(2, ',', ' ') }} €

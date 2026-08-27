@@ -107,7 +107,6 @@
                                 <th class="py-3 px-4 text-left">Produit</th>
                             {% endif %}
                             <th class="py-3 px-4 text-left">Nom de la session</th>
-                            <th class="py-3 px-4 text-left">Date</th>
                             <th class="py-3 px-4 text-right">Gains (+)</th>
                             <th class="py-3 px-4 text-right">Charges (-)</th>
                             <th class="py-3 px-4 text-right">Solde Net</th>
@@ -120,7 +119,6 @@
                                     <td class="py-3 px-4 font-bold uppercase text-zinc-700">{{ processus.product.name }}</td>
                                 {% endif %}
                                 <td class="py-3 px-4 font-semibold text-sm tracking-tight text-zinc-900">{{ processus.name }}</td>
-                                <td class="py-3 px-4 font-mono text-zinc-500">{{ processus.createdAt|date('d/m/Y') }}</td>
                                 <td class="py-3 px-4 text-right text-emerald-600 font-mono font-medium">+ {{ processus.gainsTotal|number_format(2, ',', ' ') }} €</td>
                                 <td class="py-3 px-4 text-right text-rose-600 font-mono font-medium">- {{ processus.costsTotal|number_format(2, ',', ' ') }} €</td>
                                 <td class="py-3 px-4 text-right font-mono font-bold tracking-tight {% if processus.soldeFinal >= 0 %}text-zinc-900{% else %}text-rose-600{% endif %}">
