@@ -3,10 +3,37 @@
 {% block title %}Comparateur Financier{% endblock %}
 
 {% block body %}
+    <!-- Styles spécifiques à l'impression -->
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .max-w-7xl {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            /* Conserve les couleurs d'arrière-plan et bordures Tailwind à l'impression */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            /* Évite de couper les cartes au milieu d'une page */
+            .break-inside-avoid {
+                break-inside: avoid;
+            }
+        }
+    </style>
+
     <div class="max-w-7xl mx-auto px-4 py-8">
 
-        <!-- FORMULAIRE DE SÉLECTION MULTI-NIVEAUX (A vs B) -->
-        <form method="GET" action="{{ path('app_compare') }}" class="bg-white border border-zinc-200 rounded-md p-5 mb-8 shadow-sm">
+        <!-- FORMULAIRE DE SÉLECTION MULTI-NIVEAUX (A vs B) - Masqué à l'impression -->
+        <form method="GET" action="{{ path('app_compare') }}" class="no-print bg-white border border-zinc-200 rounded-md p-5 mb-8 shadow-sm">
             <div class="flex justify-between items-center mb-4 pb-3 border-b border-zinc-100">
                 <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-800">Paramètres de Confrontation</h2>
                 <a href="{{ path('app_compare') }}" class="text-xs font-mono text-zinc-500 hover:text-zinc-900 underline">Réinitialiser</a>
@@ -133,8 +160,18 @@
 
         <!-- AFFICHAGE DES RÉSULTATS DE COMPARAISON -->
         {% if statsA and statsB %}
+            <!-- BARRE D'ACTIONS / BOUTON IMPRESSION -->
+            <div class="no-print flex justify-end mb-4">
+                <button onclick="window.print()" class="inline-flex items-center gap-2 bg-zinc-900 text-white text-xs font-mono uppercase tracking-wider px-4 py-2 rounded shadow hover:bg-zinc-800 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    Imprimer / Imprimer en PDF
+                </button>
+            </div>
+
             <!-- Badge de précision -->
-            <div class="flex justify-between items-center bg-zinc-100 border border-zinc-200 px-4 py-2 rounded-md mb-4 text-xs font-mono">
+            <div class="flex justify-between items-center bg-zinc-100 border border-zinc-200 px-4 py-2 rounded-md mb-4 text-xs font-mono break-inside-avoid">
                 <div>
                     <span class="text-zinc-500 uppercase">Niveau d'analyse actuel :</span><br>
                     <span class="font-bold">Unité : TONNE (1000 KG)</span>
@@ -144,7 +181,7 @@
                 </span>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 break-inside-avoid">
                 <!-- BLOC A -->
                 <div class="bg-white border border-zinc-200 rounded-md p-5">
                     <div class="flex justify-between items-start border-b border-zinc-100 pb-3 mb-4">
@@ -205,7 +242,7 @@
             {% set ecartGains = statsB.gains - statsA.gains %}
             {% set ecartCosts = statsB.costs - statsA.costs %}
 
-            <div class="bg-white border border-zinc-200 rounded-md p-5 mb-6">
+            <div class="bg-white border border-zinc-200 rounded-md p-5 mb-6 break-inside-avoid">
                 <h3 class="font-bold uppercase tracking-wider text-sm border-b border-zinc-100 pb-2 mb-4">Analyse Différentielle (B vs A)</h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -233,7 +270,7 @@
             </div>
 
             <!-- GRAPHIQUE COMPATIBLE -->
-            <div class="bg-white border border-zinc-200 rounded-md p-5">
+            <div class="bg-white border border-zinc-200 rounded-md p-5 break-inside-avoid">
                 <h3 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-zinc-100 pb-2 text-zinc-700">Visualisation Synthétique</h3>
                 <div class="w-full h-64">
                     <canvas id="compareAdvancedChart"></canvas>

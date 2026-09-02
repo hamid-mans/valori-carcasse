@@ -3,16 +3,57 @@
 {% block title %}Calcul de Tournée - Valori-Carcasse{% endblock %}
 
 {% block body %}
+    <!-- Styles spécifiques à l'impression -->
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .max-w-6xl {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            /* La colonne de résultats prend toute la largeur */
+            .lg\:col-span-6 {
+                grid-column: span 12 / span 12 !important;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .break-inside-avoid {
+                break-inside: avoid;
+            }
+        }
+    </style>
+
     <div class="max-w-6xl mx-auto space-y-6">
-        <div>
-            <h1 class="text-2xl font-bold text-zinc-900">Calculateur de Tournée</h1>
-            <p class="text-sm text-zinc-500 mt-1">Sélectionnez les catégories pour saisir les tonnages et estimer la valeur, le coût et la marge.</p>
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-bold text-zinc-900">Calculateur de Tournée</h1>
+                <p class="text-sm text-zinc-500 mt-1">Sélectionnez les catégories pour saisir les tonnages et estimer la valeur, le coût et la marge.</p>
+            </div>
+
+            {% if resultats is not null %}
+                <!-- BOUTON IMPRESSION -->
+                <button onclick="window.print()" class="no-print inline-flex items-center gap-2 bg-zinc-900 text-white text-xs font-mono uppercase tracking-wider px-4 py-2 rounded shadow hover:bg-zinc-800 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    Imprimer / PDF
+                </button>
+            {% endif %}
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-            <!-- COLONNE GAUCHE : COMPOSITION EN ACCORDÉONS -->
-            <div class="lg:col-span-6 space-y-4">
+            <!-- COLONNE GAUCHE : COMPOSITION EN ACCORDÉONS (Masquée à l'impression) -->
+            <div class="no-print lg:col-span-6 space-y-4">
                 <form method="POST" data-turbo="false" class="space-y-4">
 
                     <div class="bg-zinc-900 text-white p-3.5 rounded-md flex justify-between items-center shadow-sm">
@@ -132,7 +173,7 @@
             <!-- COLONNE DROITE : RÉSULTATS & DÉTAILS DE LA SIMULATION -->
             <div class="lg:col-span-6 space-y-4">
                 {% if resultats is not null %}
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 break-inside-avoid">
                         <div class="bg-white p-3.5 rounded-md border border-zinc-200 shadow-sm">
                             <span class="uppercase tracking-wider font-semibold text-[10px] text-zinc-500">Valeur Totale</span>
                             <div class="text-base font-bold text-zinc-900 mt-0.5">{{ resultats.total_valeur|number_format(2, ',', ' ') }} €</div>
@@ -147,7 +188,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-md border border-zinc-200 shadow-sm overflow-hidden">
+                    <div class="bg-white rounded-md border border-zinc-200 shadow-sm overflow-hidden break-inside-avoid">
                         <div class="px-4 py-3 border-b border-zinc-100 bg-zinc-50/50">
                             <h3 class="font-bold tracking-wide uppercase text-xs text-zinc-800">Détail de la simulation</h3>
                         </div>
@@ -191,9 +232,11 @@
 
     <!-- SCRIPT JS DE BASCULE D'ACCORDÉON -->
     <script>
-        function toggleAccordion(bodyId, iconId) {
+        window.toggleAccordion = function(bodyId, iconId) {
             const body = document.getElementById(bodyId);
             const icon = document.getElementById(iconId);
+
+            if (!body || !icon) return;
 
             if (body.classList.contains('hidden')) {
                 body.classList.remove('hidden');
@@ -202,6 +245,6 @@
                 body.classList.add('hidden');
                 icon.classList.remove('rotate-90');
             }
-        }
+        };
     </script>
 {% endblock %}

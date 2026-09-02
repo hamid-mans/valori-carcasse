@@ -3,10 +3,36 @@
 {% block title %}Tableau de Bord Global{% endblock %}
 
 {% block body %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @media print {
+            /* 1. Masquer les éléments non imprimables (filtres, boutons, navigation, etc.) */
+            nav, sidebar, header, form, button, .no-print {
+                display: none !important;
+            }
+
+            /* 2. Réinitialisation du body pour l'impression A4 */
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* 3. Forcer le comportement des couleurs (ex: graphiques, badges, textes colorés) */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* 4. Éviter de couper les blocs importants au milieu d'une page */
+            .grid, .table, .bg-white {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
 
     <!-- Barre de filtres : Catégorie + Produit -->
-    <div class="bg-white p-4 rounded-md border border-zinc-200 mb-6 flex flex-col lg:flex-row justify-between items-center gap-4">
+    <div class="bg-white p-4 rounded-md border border-zinc-200 mb-6 flex flex-col lg:flex-row justify-between items-center gap-4 no-print">
         <form method="get" action="{{ path('app_dashboard') }}" id="filterForm" class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
 
             {# Filtre 1 : Catégorie #}
@@ -37,7 +63,7 @@
 
         <div class="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end">
             {% if processuses is not empty %}
-                <button onclick="exportDashboardToPDF()" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 rounded-md text-xs font-medium transition-colors">
+                <button type="button" onclick="exportDashboardToPDF()" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50 rounded-md text-xs font-medium transition-colors cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                     </svg>
@@ -45,6 +71,20 @@
                 </button>
             {% endif %}
         </div>
+    </div>
+
+    <!-- En-tête du Tableau de bord -->
+    <div class="mb-5">
+        <h2 class="text-xl font-bold tracking-tight text-zinc-900 uppercase">
+            Analyse :
+            <span class="text-zinc-700">
+                {% if selectedProduct %}
+                    {{ selectedProduct.name }} <span class="text-xs text-zinc-500 font-normal">({{ selectedCategory.name }})</span>
+                {% elseif selectedCategory %}
+                    {{ selectedCategory.name }} <span class="text-xs text-zinc-500 font-normal">(Vue d'ensemble)</span>
+                {% endif %}
+            </span>
+        </h2>
     </div>
 
     <!-- Cartes KPI Synthese -->
@@ -66,23 +106,9 @@
     </div>
 
     {% if processuses is not empty %}
-        <div id="pdf-content" class="bg-transparent">
-            <!-- En-tête -->
-            <div class="mb-5">
-                <h2 class="text-xl font-bold tracking-tight text-zinc-900 uppercase">
-                    Analyse :
-                    <span class="text-zinc-700">
-                        {% if selectedProduct %}
-                            {{ selectedProduct.name }} <span class="text-xs text-zinc-500 font-normal">({{ selectedCategory.name }})</span>
-                        {% elseif selectedCategory %}
-                            {{ selectedCategory.name }} <span class="text-xs text-zinc-500 font-normal">(Vue d'ensemble)</span>
-                        {% endif %}
-                    </span>
-                </h2>
-            </div>
-
+        <div id="pdf-content" class="space-y-6">
             <!-- Graphique Chart.js -->
-            <div class="grid grid-cols-1 gap-6 mb-6">
+            <div class="grid grid-cols-1 gap-6">
                 <div class="bg-white p-5 border border-zinc-200 rounded-md">
                     <h3 class="font-bold uppercase mb-4 text-xs tracking-wider text-zinc-600">Marges et flux financiers par session</h3>
                     <div class="h-64">
@@ -132,70 +158,15 @@
             </div>
         </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <script>
             let myProductChart = null;
 
-            async function exportDashboardToPDF() {
-                if (!myProductChart) return;
-
-                try {
-                    const chartImage = myProductChart.toBase64Image();
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-                    pdf.setFont("helvetica", "bold");
-                    pdf.setFontSize(16);
-                    pdf.setTextColor(24, 24, 27);
-                    pdf.text("RAPPORT D'ANALYSE FINANCIÈRE", 14, 18);
-
-                    pdf.setFont("helvetica", "normal");
-                    pdf.setFontSize(11);
-                    pdf.setTextColor(113, 113, 122);
-
-                    {% if selectedProduct %}
-                    pdf.text("Filière : {{ selectedCategory.name|upper }} | Produit : {{ selectedProduct.name|upper }}", 14, 25);
-                    {% else %}
-                    pdf.text("Filière : {{ selectedCategory.name|upper }} (Vue globale)", 14, 25);
-                    {% endif %}
-
-                    pdf.text("Généré le : " + new Date().toLocaleDateString('fr-FR'), 14, 31);
-
-                    pdf.setDrawColor(24, 24, 27);
-                    pdf.setLineWidth(0.5);
-                    pdf.line(14, 35, 283, 35);
-
-                    pdf.setFont("helvetica", "bold");
-                    pdf.setFontSize(10);
-                    pdf.setTextColor(24, 24, 27);
-                    pdf.text("1. Évolution des flux financiers", 14, 45);
-                    pdf.addImage(chartImage, 'PNG', 14, 48, 260, 100);
-
-                    const pdfBlob = pdf.output('blob');
-                    const defaultFileName = 'Rapport_Dashboard.pdf';
-
-                    if (window.showSaveFilePicker) {
-                        const handle = await window.showSaveFilePicker({
-                            suggestedName: defaultFileName,
-                            types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]
-                        });
-                        const writable = await handle.createWritable();
-                        await writable.write(pdfBlob);
-                        await writable.close();
-                    } else {
-                        const downloadLink = document.createElement('a');
-                        downloadLink.href = URL.createObjectURL(pdfBlob);
-                        downloadLink.download = defaultFileName;
-                        document.body.appendChild(downloadLink);
-                        downloadLink.click();
-                        document.body.removeChild(downloadLink);
-                    }
-                } catch (err) {
-                    if (err.name !== 'AbortError') console.error(err);
-                }
+            function exportDashboardToPDF() {
+                // Déclenche le panneau d'impression/enregistrement PDF du navigateur
+                window.print();
             }
 
-            document.addEventListener('turbo:load', function() {
+            function initChart() {
                 const ctx = document.getElementById('productChart');
                 if (!ctx) return;
 
@@ -215,7 +186,9 @@
                 soldes.push({{ processus.soldeFinal }});
                 {% endfor %}
 
-                if (myProductChart) myProductChart.destroy();
+                if (myProductChart) {
+                    myProductChart.destroy();
+                }
 
                 myProductChart = new Chart(ctx.getContext('2d'), {
                     type: 'bar',
@@ -237,7 +210,11 @@
                         }
                     }
                 });
-            });
+            }
+
+            // Support à la fois pour Turbo / Symfony UX et le chargement classique
+            document.addEventListener('turbo:load', initChart);
+            document.addEventListener('DOMContentLoaded', initChart);
         </script>
     {% else %}
         <div class="bg-white border border-zinc-200 rounded-md p-12 text-center my-6">
